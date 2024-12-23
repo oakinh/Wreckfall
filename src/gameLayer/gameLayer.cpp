@@ -22,20 +22,28 @@ struct GameData
 gl2d::Renderer2D renderer;
 gl2d::Texture t;
 gl2d::Texture idleMcSpriteSheet;
+float zoomLevel = 5.0f;
 
 bool initGame()
 {
 	//initializing stuff for the renderer
 	gl2d::init();
 	renderer.create();
+	//platform::setFullScreen(true);
 
 	//loading the saved data. Loading an entire structure like this makes savind game data very easy.
 	platform::readEntireFile(RESOURCES_PATH "gameData.data", &gameData, sizeof(GameData));
 
-	t.loadFromFile(RESOURCES_PATH "test.jpg", true);
+	//t.loadFromFile(RESOURCES_PATH "test.jpg", true);
 	idleMcSpriteSheet.loadFromFile(RESOURCES_PATH "mainCharacterIdleAnimation.png", true);
+	
 
+	int w = platform::getFrameBufferSizeX();
+	int h = platform::getFrameBufferSizeY();
 
+	glm::vec2 screenCenter = glm::vec2(w, h) / 2.0f;
+	gameData.rectPos = screenCenter / zoomLevel - glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) / 2.0f;
+	
 	return true;
 }
 
@@ -49,17 +57,32 @@ bool initGame()
 bool gameLogic(float deltaTime)
 {
 #pragma region init stuff
+	static int prevWindowWidth = 0;
+	static int prevWindowHeight = 0;
 	int w = 0; int h = 0;
 	w = platform::getFrameBufferSizeX(); //window w
 	h = platform::getFrameBufferSizeY(); //window h
+
+	if (w != prevWindowWidth || h != prevWindowHeight)
+	{
+		prevWindowWidth = w;
+		prevWindowHeight = h;
+
+		// Re-center the character
+		glm::vec2 screenCenter = glm::vec2(w, h) / (2.0f * zoomLevel);
+		gameData.rectPos = screenCenter - glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) / 2.0f;
+	}
 
 	glViewport(0, 0, w, h);
 	glClear(GL_COLOR_BUFFER_BIT); //clear screen
 
 	renderer.updateWindowMetrics(w, h);
+
 #pragma endregion
-
-
+	gl2d::Camera camera;
+	camera.zoom = zoomLevel;
+	camera.position = gameData.rectPos + glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) / 2.0f; // Center the camera
+	renderer.setCamera(camera);
 
 
 	if (platform::isButtonHeld(platform::Button::Left))
@@ -81,10 +104,10 @@ bool gameLogic(float deltaTime)
 
 	gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
 
-	float uWidth = 1.0f / idleMcAnimation.totalFrames;
-	float uStart = uWidth * idleMcAnimation.currentFrame;
-	float uEnd = uStart + uWidth;
-
+	//float uWidth = 1.0f / idleMcAnimation.totalFrames;
+	//float uStart = uWidth * idleMcAnimation.currentFrame;
+	//float uEnd = uStart + uWidth;
+	
 	updateAnimation(idleMcAnimation, deltaTime);
 
 	int xCount = 33;	// Number of columns in the sprite sheet
@@ -93,6 +116,7 @@ bool gameLogic(float deltaTime)
 	int y = idleMcAnimation.currentFrame / xCount;
 	glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
 
+	// Render main character
 	renderer.renderRectangle(
 		gl2d::Rect{ gameData.rectPos.x, gameData.rectPos.y, idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y },
 		idleMcSpriteSheet,
@@ -108,9 +132,10 @@ bool gameLogic(float deltaTime)
 
 
 	//ImGui::ShowDemoWindow();
-	ImGui::Begin("Test Imgui");
+	ImGui::Begin("Zoom Control");
+	ImGui::SliderFloat("Zoom level", &zoomLevel, 0.1f, 5.0f);
 
-	ImGui::DragFloat2("Positions", &gameData.rectPos[0]);
+	//ImGui::DragFloat2("Positions", &gameData.rectPos[0]);
 
 	ImGui::End();
 
