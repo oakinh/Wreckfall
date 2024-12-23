@@ -10,6 +10,8 @@
 #include "imfilebrowser.h"
 #include <gl2d/gl2d.h>
 #include <platformTools.h>
+#include <core.h>
+#include <mainCharacter.h>
 
 struct GameData
 {
@@ -19,7 +21,7 @@ struct GameData
 
 gl2d::Renderer2D renderer;
 gl2d::Texture t;
-gl2d::Font f;
+gl2d::Texture idleMcSpriteSheet;
 
 bool initGame()
 {
@@ -31,7 +33,8 @@ bool initGame()
 	platform::readEntireFile(RESOURCES_PATH "gameData.data", &gameData, sizeof(GameData));
 
 	t.loadFromFile(RESOURCES_PATH "test.jpg", true);
-	f.createFromFile(RESOURCES_PATH "roboto_black.ttf");
+	idleMcSpriteSheet.loadFromFile(RESOURCES_PATH "mainCharacterIdleAnimation.png", true);
+
 
 	return true;
 }
@@ -49,12 +52,14 @@ bool gameLogic(float deltaTime)
 	int w = 0; int h = 0;
 	w = platform::getFrameBufferSizeX(); //window w
 	h = platform::getFrameBufferSizeY(); //window h
-	
+
 	glViewport(0, 0, w, h);
 	glClear(GL_COLOR_BUFFER_BIT); //clear screen
 
 	renderer.updateWindowMetrics(w, h);
 #pragma endregion
+
+
 
 
 	if (platform::isButtonHeld(platform::Button::Left))
@@ -74,10 +79,30 @@ bool gameLogic(float deltaTime)
 		gameData.rectPos.y += deltaTime * 100;
 	}
 
-	gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{0,0}, glm::vec2{w - 100,h - 100});
-	renderer.renderRectangle({gameData.rectPos, 100, 100}, t);
+	gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
 
-	renderer.renderText({200, 200}, "Hello game", f, Colors_White);
+	float uWidth = 1.0f / idleMcAnimation.totalFrames;
+	float uStart = uWidth * idleMcAnimation.currentFrame;
+	float uEnd = uStart + uWidth;
+
+	updateAnimation(idleMcAnimation, deltaTime);
+
+	int xCount = 33;	// Number of columns in the sprite sheet
+	int yCount = 1;		// Number of rows
+	int x = idleMcAnimation.currentFrame % xCount;
+	int y = idleMcAnimation.currentFrame / xCount;
+	glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
+
+	renderer.renderRectangle(
+		gl2d::Rect{ gameData.rectPos.x, gameData.rectPos.y, idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y },
+		idleMcSpriteSheet,
+		gl2d::Color4f{ 1, 1, 1, 1 },
+		glm::vec2{ 0, 0 },
+		0,
+		uvCoords
+	);
+	
+	//renderer.renderRectangle({gameData.rectPos, 100, 100}, t);
 
 	renderer.flush();
 
