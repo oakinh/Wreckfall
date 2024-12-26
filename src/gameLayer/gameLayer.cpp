@@ -12,6 +12,23 @@
 #include <platformTools.h>
 #include <core.h>
 #include <mainCharacter.h>
+#include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+glm::vec2 getMouseWorldPosition(const glm::ivec2& mouseScreenPos, const gl2d::Camera& camera, float windowWidth, float windowHeight) {
+	return gl2d::internal::convertPoint(camera, glm::vec2(mouseScreenPos), windowWidth, windowHeight);
+}
+
+int calculateRotation(const glm::vec2& characterPosition, const glm::vec2& mouseWorldPos) {
+	glm::vec2 spriteSize = { 16, 16 };
+	glm::vec2 characterCenter = characterPosition + spriteSize;
+	glm::vec2 direction = mouseWorldPos - characterCenter;
+	float angleRadians = std::atan2(direction.y, direction.x);
+	float angleDegrees = -angleRadians * 180.0f / M_PI;
+	return static_cast<int>(std::fmod(angleDegrees + 360.0f, 360.0f));
+}
 
 struct GameData
 {
@@ -40,12 +57,11 @@ bool initGame()
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
-
 	
 	/*glm::vec2 screenCenter = glm::vec2(w, h) * 0.5f;
 	glm::vec2 halfSprite = glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) * 0.5f;*/
 
-	//gameData.rectPos = glm::vec2(1000, 1000);
+	gameData.rectPos = glm::vec2(1000, 1000);
 
 	std::cout << "Initialized Player Position: " << gameData.rectPos.x << ", " << gameData.rectPos.y << std::endl;
 
@@ -101,6 +117,12 @@ bool gameLogic(float deltaTime)
 		gameData.rectPos.y += deltaTime * 300;
 	}
 
+	glm::ivec2 mouseScreenPos = platform::getRelMousePosition();
+	std::cout << "RelMousePosition X and Y: " << mouseScreenPos.x << ", " << mouseScreenPos.y << std::endl;
+	glm::vec2 mouseWorldPos = getMouseWorldPosition(mouseScreenPos, camera, w, h);
+	int mcRotation = calculateRotation(gameData.rectPos, mouseWorldPos);
+	// std::cout << "mouseWorldPos: " << mouseWorldPos.x << ", " << mouseWorldPos.y << std::endl;
+
 	float offScreenMargin = 20.0f;
 
 	// Clamp character to window bounds
@@ -113,6 +135,8 @@ bool gameLogic(float deltaTime)
 	gameData.rectPos = glm::clamp(gameData.rectPos, minBounds, maxBounds);
 
 	// gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
+
+	
 
 	int xCount = 33;	// Number of columns in the sprite sheet
 	int yCount = 1;		// Number of rows
@@ -131,7 +155,7 @@ bool gameLogic(float deltaTime)
 		idleMcSpriteSheet,
 		gl2d::Color4f{ 1, 1, 1, 1 },
 		glm::vec2{ 0, 0 },
-		0,
+		mcRotation,
 		uvCoords
 	);
 
