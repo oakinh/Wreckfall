@@ -339,6 +339,8 @@ int main()
 	glfwMakeContextCurrent(wind);
 	glfwSwapInterval(1);
 
+	glfwMaximizeWindow(wind);
+
 	glfwSetKeyCallback(wind, keyCallback);
 	glfwSetMouseButtonCallback(wind, mouseCallback);
 	glfwSetWindowFocusCallback(wind, windowFocusCallback);

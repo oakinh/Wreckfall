@@ -12,6 +12,23 @@
 #include <platformTools.h>
 #include <core.h>
 #include <mainCharacter.h>
+#include <cmath>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+glm::vec2 getMouseWorldPosition(const glm::ivec2& mouseScreenPos, const gl2d::Camera& camera, float windowWidth, float windowHeight) {
+	return gl2d::internal::convertPoint(camera, glm::vec2(mouseScreenPos), windowWidth, windowHeight);
+}
+
+int calculateRotation(const glm::vec2& characterPosition, const glm::vec2& mouseWorldPos) {
+	glm::vec2 spriteSize = { 16, 16 };
+	glm::vec2 characterCenter = characterPosition + spriteSize;
+	glm::vec2 direction = mouseWorldPos - characterCenter;
+	float angleRadians = std::atan2(direction.y, direction.x);
+	float angleDegrees = -angleRadians * 180.0f / M_PI;
+	return static_cast<int>(std::fmod(angleDegrees + 360.0f, 360.0f));
+}
 
 struct GameData
 {
@@ -22,20 +39,33 @@ struct GameData
 gl2d::Renderer2D renderer;
 gl2d::Texture t;
 gl2d::Texture idleMcSpriteSheet;
+float zoomLevel = 1.0f;
+float spriteScale = 4.0f;
 
 bool initGame()
 {
 	//initializing stuff for the renderer
 	gl2d::init();
 	renderer.create();
+	//platform::setFullScreen(true);
 
-	//loading the saved data. Loading an entire structure like this makes savind game data very easy.
+	//loading the saved data. Loading an entire structure like this makes saving game data very easy.
 	platform::readEntireFile(RESOURCES_PATH "gameData.data", &gameData, sizeof(GameData));
-
-	t.loadFromFile(RESOURCES_PATH "test.jpg", true);
+	
 	idleMcSpriteSheet.loadFromFile(RESOURCES_PATH "mainCharacterIdleAnimation.png", true);
+	
 
+	int w = platform::getFrameBufferSizeX();
+	int h = platform::getFrameBufferSizeY();
+	
+	/*glm::vec2 screenCenter = glm::vec2(w, h) * 0.5f;
+	glm::vec2 halfSprite = glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) * 0.5f;*/
 
+	gameData.rectPos = glm::vec2(1000, 1000);
+
+	std::cout << "Initialized Player Position: " << gameData.rectPos.x << ", " << gameData.rectPos.y << std::endl;
+
+	
 	return true;
 }
 
@@ -49,6 +79,8 @@ bool initGame()
 bool gameLogic(float deltaTime)
 {
 #pragma region init stuff
+	static int prevWindowWidth = 0;
+	static int prevWindowHeight = 0;
 	int w = 0; int h = 0;
 	w = platform::getFrameBufferSizeX(); //window w
 	h = platform::getFrameBufferSizeY(); //window h
@@ -57,35 +89,54 @@ bool gameLogic(float deltaTime)
 	glClear(GL_COLOR_BUFFER_BIT); //clear screen
 
 	renderer.updateWindowMetrics(w, h);
+
 #pragma endregion
+	glm::vec2 viewportSizeInWorld = glm::vec2(w, h) / zoomLevel;
+	gl2d::Camera camera;
 
-
+	camera.position.x = 1000;
+	camera.position.y = 1000;
+	camera.position -= viewportSizeInWorld * 0.5f;
+	renderer.setCamera(camera);
 
 
 	if (platform::isButtonHeld(platform::Button::Left))
 	{
-		gameData.rectPos.x -= deltaTime * 100;
+		gameData.rectPos.x -= deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Right))
 	{
-		gameData.rectPos.x += deltaTime * 100;
+		gameData.rectPos.x += deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Up))
 	{
-		gameData.rectPos.y -= deltaTime * 100;
+		gameData.rectPos.y -= deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Down))
 	{
-		gameData.rectPos.y += deltaTime * 100;
+		gameData.rectPos.y += deltaTime * 300;
 	}
 
-	gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
+	glm::ivec2 mouseScreenPos = platform::getRelMousePosition();
+	std::cout << "RelMousePosition X and Y: " << mouseScreenPos.x << ", " << mouseScreenPos.y << std::endl;
+	glm::vec2 mouseWorldPos = getMouseWorldPosition(mouseScreenPos, camera, w, h);
+	int mcRotation = calculateRotation(gameData.rectPos, mouseWorldPos);
+	// std::cout << "mouseWorldPos: " << mouseWorldPos.x << ", " << mouseWorldPos.y << std::endl;
 
-	float uWidth = 1.0f / idleMcAnimation.totalFrames;
-	float uStart = uWidth * idleMcAnimation.currentFrame;
-	float uEnd = uStart + uWidth;
+	float offScreenMargin = 20.0f;
 
-	updateAnimation(idleMcAnimation, deltaTime);
+	// Clamp character to window bounds
+	glm::vec2 halfSpriteSize = {
+		idleMcAnimation.frameSize.x * 0.5f,
+		idleMcAnimation.frameSize.y * 0.5f
+	};
+	glm::vec2 minBounds = glm::vec2(-offScreenMargin) - halfSpriteSize;
+	glm::vec2 maxBounds = glm::vec2(w + offScreenMargin, h + offScreenMargin) + halfSpriteSize;
+	gameData.rectPos = glm::clamp(gameData.rectPos, minBounds, maxBounds);
+
+	// gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
+
+	
 
 	int xCount = 33;	// Number of columns in the sprite sheet
 	int yCount = 1;		// Number of rows
@@ -93,24 +144,35 @@ bool gameLogic(float deltaTime)
 	int y = idleMcAnimation.currentFrame / xCount;
 	glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
 
+	// Render main character
 	renderer.renderRectangle(
-		gl2d::Rect{ gameData.rectPos.x, gameData.rectPos.y, idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y },
+		gl2d::Rect{ 
+			gameData.rectPos.x, 
+			gameData.rectPos.y, 
+			idleMcAnimation.frameSize.x * spriteScale,
+			idleMcAnimation.frameSize.y * spriteScale 
+		},
 		idleMcSpriteSheet,
 		gl2d::Color4f{ 1, 1, 1, 1 },
 		glm::vec2{ 0, 0 },
-		0,
+		mcRotation,
 		uvCoords
 	);
-	
-	//renderer.renderRectangle({gameData.rectPos, 100, 100}, t);
+
+	updateAnimation(idleMcAnimation, deltaTime);
+
+	/*renderer.renderRectangle({gameData.rectPos, 100, 100},
+		gl2d::Color4f{ 1, 0, 0, 1});*/
 
 	renderer.flush();
 
 
 	//ImGui::ShowDemoWindow();
-	ImGui::Begin("Test Imgui");
+	ImGui::Begin("Rectangle Control");
+	//ImGui::SliderFloat("Zoom level", &zoomLevel, 0.1f, 5.0f);
 
 	ImGui::DragFloat2("Positions", &gameData.rectPos[0]);
+
 
 	ImGui::End();
 
