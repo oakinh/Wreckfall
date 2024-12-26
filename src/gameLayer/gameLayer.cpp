@@ -45,7 +45,7 @@ bool initGame()
 	/*glm::vec2 screenCenter = glm::vec2(w, h) * 0.5f;
 	glm::vec2 halfSprite = glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) * 0.5f;*/
 
-	gameData.rectPos = glm::vec2(1000, 1000);
+	//gameData.rectPos = glm::vec2(1000, 1000);
 
 	std::cout << "Initialized Player Position: " << gameData.rectPos.x << ", " << gameData.rectPos.y << std::endl;
 
@@ -78,40 +78,27 @@ bool gameLogic(float deltaTime)
 	glm::vec2 viewportSizeInWorld = glm::vec2(w, h) / zoomLevel;
 	gl2d::Camera camera;
 
-	/*camera.position.x = -(
-		(static_cast<float>(w) / 2.0f) / zoomLevel);
-	camera.position.y = +(
-		(static_cast<float>(h) / 2.0f) / zoomLevel);*/
-
-	//camera.zoom = zoomLevel;
-
-
 	camera.position.x = 1000;
 	camera.position.y = 1000;
-		
 	camera.position -= viewportSizeInWorld * 0.5f;
-
-	
-	//// For a camera that follows player
-	//// camera.position = gameData.rectPos + glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) / 2.0f; // Center the camera
 	renderer.setCamera(camera);
 
 
 	if (platform::isButtonHeld(platform::Button::Left))
 	{
-		gameData.rectPos.x -= deltaTime * 100;
+		gameData.rectPos.x -= deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Right))
 	{
-		gameData.rectPos.x += deltaTime * 100;
+		gameData.rectPos.x += deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Up))
 	{
-		gameData.rectPos.y -= deltaTime * 100;
+		gameData.rectPos.y -= deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Down))
 	{
-		gameData.rectPos.y += deltaTime * 100;
+		gameData.rectPos.y += deltaTime * 300;
 	}
 
 	float offScreenMargin = 20.0f;
@@ -150,17 +137,6 @@ bool gameLogic(float deltaTime)
 
 	updateAnimation(idleMcAnimation, deltaTime);
 
-	glm::vec2 cameraTopLeft = camera.position - viewportSizeInWorld * 0.5f;
-	glm::vec2 cameraBottomRight = camera.position + viewportSizeInWorld * 0.5f;
-	glm::vec2 cameraCenter = (cameraTopLeft + cameraBottomRight) * 0.5f;
-
-	std::cout << "Camera Center: " << cameraCenter.x << ", " << cameraCenter.y << std::endl;
-	std::cout << "Player Position: " << gameData.rectPos.x << ", " << gameData.rectPos.y << std::endl;
-	std::cout << "Camera View: (" << cameraTopLeft.x << ", " << cameraTopLeft.y << ") to ("
-		<< cameraBottomRight.x << ", " << cameraBottomRight.y << ")" << std::endl;
-
-
-	
 	/*renderer.renderRectangle({gameData.rectPos, 100, 100},
 		gl2d::Color4f{ 1, 0, 0, 1});*/
 
