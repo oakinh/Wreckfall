@@ -37,8 +37,8 @@ struct GameData
 }gameData;
 
 gl2d::Renderer2D renderer;
-gl2d::Texture t;
 gl2d::Texture idleMcSpriteSheet;
+gl2d::Texture movingMcSpriteSheet;
 float zoomLevel = 1.0f;
 float spriteScale = 4.0f;
 
@@ -53,7 +53,7 @@ bool initGame()
 	platform::readEntireFile(RESOURCES_PATH "gameData.data", &gameData, sizeof(GameData));
 	
 	idleMcSpriteSheet.loadFromFile(RESOURCES_PATH "mainCharacterIdleAnimation.png", true);
-	
+	movingMcSpriteSheet.loadFromFile(RESOURCES_PATH "mcMovingAnimation.png", true);
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
@@ -99,29 +99,31 @@ bool gameLogic(float deltaTime)
 	camera.position -= viewportSizeInWorld * 0.5f;
 	renderer.setCamera(camera);
 
-
+	bool playerIsMoving = false;
 	if (platform::isButtonHeld(platform::Button::Left))
 	{
+		playerIsMoving = true;
 		gameData.rectPos.x -= deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Right))
 	{
+		playerIsMoving = true;
 		gameData.rectPos.x += deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Up))
 	{
+		playerIsMoving = true;
 		gameData.rectPos.y -= deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Down))
 	{
+		playerIsMoving = true;
 		gameData.rectPos.y += deltaTime * 300;
 	}
 
 	glm::ivec2 mouseScreenPos = platform::getRelMousePosition();
-	std::cout << "RelMousePosition X and Y: " << mouseScreenPos.x << ", " << mouseScreenPos.y << std::endl;
 	glm::vec2 mouseWorldPos = getMouseWorldPosition(mouseScreenPos, camera, w, h);
 	int mcRotation = calculateRotation(gameData.rectPos, mouseWorldPos);
-	// std::cout << "mouseWorldPos: " << mouseWorldPos.x << ", " << mouseWorldPos.y << std::endl;
 
 	float offScreenMargin = 20.0f;
 
@@ -133,33 +135,62 @@ bool gameLogic(float deltaTime)
 	glm::vec2 minBounds = glm::vec2(-offScreenMargin) - halfSpriteSize;
 	glm::vec2 maxBounds = glm::vec2(w + offScreenMargin, h + offScreenMargin) + halfSpriteSize;
 	gameData.rectPos = glm::clamp(gameData.rectPos, minBounds, maxBounds);
-
+	
 	// gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
 
-	
 
-	int xCount = 33;	// Number of columns in the sprite sheet
-	int yCount = 1;		// Number of rows
-	int x = idleMcAnimation.currentFrame % xCount;
-	int y = idleMcAnimation.currentFrame / xCount;
-	glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
 
 	// Render main character
-	renderer.renderRectangle(
-		gl2d::Rect{ 
-			gameData.rectPos.x, 
-			gameData.rectPos.y, 
-			idleMcAnimation.frameSize.x * spriteScale,
-			idleMcAnimation.frameSize.y * spriteScale 
-		},
-		idleMcSpriteSheet,
-		gl2d::Color4f{ 1, 1, 1, 1 },
-		glm::vec2{ 0, 0 },
-		mcRotation,
-		uvCoords
-	);
 
-	updateAnimation(idleMcAnimation, deltaTime);
+	if (playerIsMoving) {
+		int xCount = 12;	// Number of columns in the sprite sheet
+		int yCount = 1;		// Number of rows
+		int x = movingMcAnimation.currentFrame % xCount;
+		int y = movingMcAnimation.currentFrame / xCount;
+		glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
+		
+		std::cout << "Moving Anim Current Frame: " << movingMcAnimation.currentFrame << std::endl;
+
+		renderer.renderRectangle(
+			gl2d::Rect{
+				gameData.rectPos.x,
+				gameData.rectPos.y,
+				movingMcAnimation.frameSize.x * spriteScale,
+				movingMcAnimation.frameSize.y * spriteScale
+			},
+			movingMcSpriteSheet,
+			gl2d::Color4f{ 1, 1, 1, 1 },
+			glm::vec2{ 0, 0 },
+			mcRotation,
+			uvCoords
+		);
+		updateAnimation(movingMcAnimation, deltaTime);
+
+	} else if (!playerIsMoving) {
+		int xCount = 33;	// Number of columns in the sprite sheet
+		int yCount = 1;		// Number of rows
+		int x = idleMcAnimation.currentFrame % xCount;
+		int y = idleMcAnimation.currentFrame / xCount;
+		glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
+
+		renderer.renderRectangle(
+			gl2d::Rect{
+				gameData.rectPos.x,
+				gameData.rectPos.y,
+				idleMcAnimation.frameSize.x * spriteScale,
+				idleMcAnimation.frameSize.y * spriteScale
+			},
+			idleMcSpriteSheet,
+			gl2d::Color4f{ 1, 1, 1, 1 },
+			glm::vec2{ 0, 0 },
+			mcRotation,
+			uvCoords
+		);
+
+		updateAnimation(idleMcAnimation, deltaTime);
+	}
+
+	
 
 	/*renderer.renderRectangle({gameData.rectPos, 100, 100},
 		gl2d::Color4f{ 1, 0, 0, 1});*/

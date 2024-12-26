@@ -6,6 +6,19 @@ Animation idleMcAnimation = {
 	0.25f
 };
 
+Animation movingMcAnimation = {
+	glm::vec2(16.0f, 16.0f),
+	12,
+	0.05f
+};
+
+Entity mainCharacter = {
+	100,
+	300,
+	50,
+};
+
+
 void updateAnimation(Animation& animation, float deltaTime) {
 	animation.currentFrameTime += deltaTime;
 

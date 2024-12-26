@@ -3,6 +3,9 @@
 #include <core.h>
 
 extern Animation idleMcAnimation;
+extern Animation movingMcAnimation;
+
+extern Entity mainCharacter;
 
 void updateAnimation(Animation& animation, float deltaTime);
 
