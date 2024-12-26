@@ -22,7 +22,8 @@ struct GameData
 gl2d::Renderer2D renderer;
 gl2d::Texture t;
 gl2d::Texture idleMcSpriteSheet;
-float zoomLevel = 5.0f;
+float zoomLevel = 1.0f;
+float spriteScale = 4.0f;
 
 bool initGame()
 {
@@ -31,18 +32,23 @@ bool initGame()
 	renderer.create();
 	//platform::setFullScreen(true);
 
-	//loading the saved data. Loading an entire structure like this makes savind game data very easy.
+	//loading the saved data. Loading an entire structure like this makes saving game data very easy.
 	platform::readEntireFile(RESOURCES_PATH "gameData.data", &gameData, sizeof(GameData));
-
-	//t.loadFromFile(RESOURCES_PATH "test.jpg", true);
+	
 	idleMcSpriteSheet.loadFromFile(RESOURCES_PATH "mainCharacterIdleAnimation.png", true);
 	
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
 
-	glm::vec2 screenCenter = glm::vec2(w, h) / 2.0f;
-	gameData.rectPos = screenCenter / zoomLevel - glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) / 2.0f;
+	
+	/*glm::vec2 screenCenter = glm::vec2(w, h) * 0.5f;
+	glm::vec2 halfSprite = glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) * 0.5f;*/
+
+	gameData.rectPos = glm::vec2(1000, 1000);
+
+	std::cout << "Initialized Player Position: " << gameData.rectPos.x << ", " << gameData.rectPos.y << std::endl;
+
 	
 	return true;
 }
@@ -63,25 +69,31 @@ bool gameLogic(float deltaTime)
 	w = platform::getFrameBufferSizeX(); //window w
 	h = platform::getFrameBufferSizeY(); //window h
 
-	if (w != prevWindowWidth || h != prevWindowHeight)
-	{
-		prevWindowWidth = w;
-		prevWindowHeight = h;
-
-		// Re-center the character
-		glm::vec2 screenCenter = glm::vec2(w, h) / (2.0f * zoomLevel);
-		gameData.rectPos = screenCenter - glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) / 2.0f;
-	}
-
 	glViewport(0, 0, w, h);
 	glClear(GL_COLOR_BUFFER_BIT); //clear screen
 
 	renderer.updateWindowMetrics(w, h);
 
 #pragma endregion
+	glm::vec2 viewportSizeInWorld = glm::vec2(w, h) / zoomLevel;
 	gl2d::Camera camera;
-	camera.zoom = zoomLevel;
-	camera.position = gameData.rectPos + glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) / 2.0f; // Center the camera
+
+	/*camera.position.x = -(
+		(static_cast<float>(w) / 2.0f) / zoomLevel);
+	camera.position.y = +(
+		(static_cast<float>(h) / 2.0f) / zoomLevel);*/
+
+	//camera.zoom = zoomLevel;
+
+
+	camera.position.x = 1000;
+	camera.position.y = 1000;
+		
+	camera.position -= viewportSizeInWorld * 0.5f;
+
+	
+	//// For a camera that follows player
+	//// camera.position = gameData.rectPos + glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) / 2.0f; // Center the camera
 	renderer.setCamera(camera);
 
 
@@ -102,13 +114,18 @@ bool gameLogic(float deltaTime)
 		gameData.rectPos.y += deltaTime * 100;
 	}
 
-	gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
+	float offScreenMargin = 20.0f;
 
-	//float uWidth = 1.0f / idleMcAnimation.totalFrames;
-	//float uStart = uWidth * idleMcAnimation.currentFrame;
-	//float uEnd = uStart + uWidth;
-	
-	updateAnimation(idleMcAnimation, deltaTime);
+	// Clamp character to window bounds
+	glm::vec2 halfSpriteSize = {
+		idleMcAnimation.frameSize.x * 0.5f,
+		idleMcAnimation.frameSize.y * 0.5f
+	};
+	glm::vec2 minBounds = glm::vec2(-offScreenMargin) - halfSpriteSize;
+	glm::vec2 maxBounds = glm::vec2(w + offScreenMargin, h + offScreenMargin) + halfSpriteSize;
+	gameData.rectPos = glm::clamp(gameData.rectPos, minBounds, maxBounds);
+
+	// gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
 
 	int xCount = 33;	// Number of columns in the sprite sheet
 	int yCount = 1;		// Number of rows
@@ -118,24 +135,44 @@ bool gameLogic(float deltaTime)
 
 	// Render main character
 	renderer.renderRectangle(
-		gl2d::Rect{ gameData.rectPos.x, gameData.rectPos.y, idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y },
+		gl2d::Rect{ 
+			gameData.rectPos.x, 
+			gameData.rectPos.y, 
+			idleMcAnimation.frameSize.x * spriteScale,
+			idleMcAnimation.frameSize.y * spriteScale 
+		},
 		idleMcSpriteSheet,
 		gl2d::Color4f{ 1, 1, 1, 1 },
 		glm::vec2{ 0, 0 },
 		0,
 		uvCoords
 	);
+
+	updateAnimation(idleMcAnimation, deltaTime);
+
+	glm::vec2 cameraTopLeft = camera.position - viewportSizeInWorld * 0.5f;
+	glm::vec2 cameraBottomRight = camera.position + viewportSizeInWorld * 0.5f;
+	glm::vec2 cameraCenter = (cameraTopLeft + cameraBottomRight) * 0.5f;
+
+	std::cout << "Camera Center: " << cameraCenter.x << ", " << cameraCenter.y << std::endl;
+	std::cout << "Player Position: " << gameData.rectPos.x << ", " << gameData.rectPos.y << std::endl;
+	std::cout << "Camera View: (" << cameraTopLeft.x << ", " << cameraTopLeft.y << ") to ("
+		<< cameraBottomRight.x << ", " << cameraBottomRight.y << ")" << std::endl;
+
+
 	
-	//renderer.renderRectangle({gameData.rectPos, 100, 100}, t);
+	/*renderer.renderRectangle({gameData.rectPos, 100, 100},
+		gl2d::Color4f{ 1, 0, 0, 1});*/
 
 	renderer.flush();
 
 
 	//ImGui::ShowDemoWindow();
-	ImGui::Begin("Zoom Control");
-	ImGui::SliderFloat("Zoom level", &zoomLevel, 0.1f, 5.0f);
+	ImGui::Begin("Rectangle Control");
+	//ImGui::SliderFloat("Zoom level", &zoomLevel, 0.1f, 5.0f);
 
-	//ImGui::DragFloat2("Positions", &gameData.rectPos[0]);
+	ImGui::DragFloat2("Positions", &gameData.rectPos[0]);
+
 
 	ImGui::End();
 
