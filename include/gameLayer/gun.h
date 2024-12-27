@@ -1,3 +1,6 @@
+#pragma once
+
 struct Gun {
-	float fireRate;
+	int fireRate = 300;
+	glm::vec2 position;
 };

@@ -16,6 +16,8 @@
 #include <circleCollision.h>
 #include <enemy.h>
 #include <bullet.h>
+#include <gun.h>
+#include <gameData.h>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -33,18 +35,12 @@ int calculateRotation(const glm::vec2& characterPosition, const glm::vec2& mouse
 	return static_cast<int>(std::fmod(angleDegrees + 360.0f, 360.0f));
 }
 
-struct GameData
-{
-	Player player;
-	Enemy snatcher;
-
-}gameData;
-
 gl2d::Renderer2D renderer;
 gl2d::Texture idleMcSpriteSheet;
 gl2d::Texture movingMcSpriteSheet;
 gl2d::Texture snatcherSpriteSheet;
 gl2d::Texture gunSprite;
+gl2d::Texture gunFire;
 float zoomLevel = 1.0f;
 float spriteScale = 4.0f;
 
@@ -61,6 +57,7 @@ bool initGame()
 	movingMcSpriteSheet.loadFromFile(RESOURCES_PATH "mcMovingAnimation.png", true);
 	snatcherSpriteSheet.loadFromFile(RESOURCES_PATH "snatcherWalkingAnimation.png", true);
 	gunSprite.loadFromFile(RESOURCES_PATH "dmrStatic.png", true);
+	gunFire.loadFromFile(RESOURCES_PATH "gunfire.png", true);
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
@@ -128,6 +125,10 @@ bool gameLogic(float deltaTime)
 	{
 		playerIsMoving = true;
 		gameData.player.position.y += deltaTime * 300;
+	}
+	bool playerIsFiring = false;
+	if (platform::isLMousePressed()) {
+		playerIsFiring = true;
 	}
 
 	glm::ivec2 mouseScreenPos = platform::getRelMousePosition();
@@ -216,13 +217,13 @@ bool gameLogic(float deltaTime)
 	glm::vec2 gunScaledSize = gunSize * spriteScale;
 
 	glm::vec2 gunPivot = { 0.0f, 0.0f };
-	glm::vec2 gunPosCentered = gunPosition - gunScaledSize * 0.5f;
+	gameData.gun.position = gunPosition - gunScaledSize * 0.5f;
 
 	// Render gun
 	renderer.renderRectangle(
 		gl2d::Rect{
-			gunPosCentered.x,
-			gunPosCentered.y,
+			gameData.gun.position.x,
+			gameData.gun.position.y,
 			gunScaledSize.x,
 			gunScaledSize.y
 		},
@@ -231,6 +232,9 @@ bool gameLogic(float deltaTime)
 		gunPivot,
 		mcRotation
 	);
+	if (playerIsFiring) {
+		calculateMuzzlePos(mcRotation, spriteScale);
+	}
 
 	// Render snatcher
 	if (gameData.snatcher.isAlive) {
@@ -261,9 +265,9 @@ bool gameLogic(float deltaTime)
 	else {
 		std::cout << "Snatcher detected as NOT alive" << std::endl;
 	}
-	std::cout << "Checking collision" << std::endl;
-	std::cout << "Player radius: " << gameData.player.radius << std::endl;
-	std::cout << "Snatcher radius: " << gameData.snatcher.radius << std::endl;
+	//std::cout << "Checking collision" << std::endl;
+	//std::cout << "Player radius: " << gameData.player.radius << std::endl;
+	//std::cout << "Snatcher radius: " << gameData.snatcher.radius << std::endl;
 
 	if (isCircleColliding(gameData.player.position,
 		gameData.player.radius,
@@ -275,10 +279,6 @@ bool gameLogic(float deltaTime)
 			gameData.snatcher.radius, spriteScale);
 		std::cout << "Collision detected and resolved!" << std::endl;
 	}
-	
-
-	/*renderer.renderRectangle({gameData.player.position, 100, 100},
-		gl2d::Color4f{ 1, 0, 0, 1});*/
 
 	renderer.flush();
 

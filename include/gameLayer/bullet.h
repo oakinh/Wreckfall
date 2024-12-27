@@ -1,3 +1,5 @@
+#pragma once
+
 struct Bullet {
 	glm::vec2 position;
 	float radius;
@@ -5,3 +7,5 @@ struct Bullet {
 	float damage;	// Damage dealt
 	bool isActive;	// Active state
 };
+
+glm::vec2 calculateMuzzlePos(int rotation, float spriteScale);
