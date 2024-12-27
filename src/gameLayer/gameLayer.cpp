@@ -215,8 +215,6 @@ bool gameLogic(float deltaTime)
 	glm::vec2 gunSize = { 16.0f, 16.0f };
 	glm::vec2 gunScaledSize = gunSize * spriteScale;
 
-	//glm::vec2 gunPivot = { 0.0f, gunScaledSize.y * 0.5f };
-	//glm::vec2 gunPivot = { gunScaledSize.x * 0.5f, gunScaledSize.y * 0.5f };
 	glm::vec2 gunPivot = { 0.0f, 0.0f };
 	glm::vec2 gunPosCentered = gunPosition - gunScaledSize * 0.5f;
 
