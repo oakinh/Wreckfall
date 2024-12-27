@@ -131,7 +131,7 @@ bool gameLogic(float deltaTime)
 	glm::vec2 mouseWorldPos = getMouseWorldPosition(mouseScreenPos, camera, w, h);
 	int mcRotation = calculateRotation(gameData.player.position, mouseWorldPos);
 
-	std::cout << "Snatcher is alive? - " << std::boolalpha << gameData.snatcher.isAlive << std::endl;
+	//std::cout << "Snatcher is alive? - " << std::boolalpha << gameData.snatcher.isAlive << std::endl;
 
 	float offScreenMargin = 20.0f;
 
@@ -147,7 +147,6 @@ bool gameLogic(float deltaTime)
 	// gameData.player.position = glm::clamp(gameData.player.position, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
 
 	// Render main character
-
 	if (playerIsMoving) {
 		int xCount = 12;	// Number of columns in the sprite sheet
 		int yCount = 1;		// Number of rows
@@ -199,7 +198,7 @@ bool gameLogic(float deltaTime)
 		int y = idleMcAnimation.currentFrame / xCount;
 		glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
 		
-		renderer.renderRectangle(
+		/*renderer.renderRectangle(
 			gl2d::Rect{
 				gameData.snatcher.position.x,
 				gameData.snatcher.position.y,
@@ -211,19 +210,29 @@ bool gameLogic(float deltaTime)
 			glm::vec2{ 0, 0 },
 			0,
 			uvCoords
-		);
-		std::cout << "Snatcher rendered" << std::endl;
+		);*/
+		// std::cout << "Snatcher rendered" << std::endl;
+
+		renderer.renderRectangle(gl2d::Rect{gameData.snatcher.position.x, gameData.snatcher.position.y, 64, 64},
+		gl2d::Color4f{ 1, 0, 0, 1});
 	}
+	else {
+		std::cout << "Snatcher detected as NOT alive" << std::endl;
+	}
+	std::cout << "Checking collision" << std::endl;
+	std::cout << "Player radius: " << gameData.player.radius << std::endl;
+	std::cout << "Snatcher radius: " << gameData.snatcher.radius << std::endl;
 
-	//if (isCircleColliding(gameData.player.position,
-	//	gameData.player.radius,
-	//	gameData.snatcher.position,
-	//	gameData.snatcher.radius)) {
-	//	gameData.snatcher.isAlive = false;
-	//	std::cout << "Collision detected!" << std::endl;
-	//}
-	
-
+	if (isCircleColliding(gameData.player.position,
+		gameData.player.radius,
+		gameData.snatcher.position,
+		gameData.snatcher.radius, spriteScale)) // Change radius
+	{
+		resolveCircleCollision(gameData.player.position, gameData.player.radius,
+			gameData.snatcher.position,
+			gameData.snatcher.radius, spriteScale);
+		std::cout << "Collision detected and resolved!" << std::endl;
+	}
 	
 
 	/*renderer.renderRectangle({gameData.player.position, 100, 100},

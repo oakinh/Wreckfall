@@ -1,0 +1,3 @@
+struct Gun {
+	float fireRate;
+};
