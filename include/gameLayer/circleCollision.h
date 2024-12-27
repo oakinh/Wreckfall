@@ -1,0 +1,1 @@
+bool isCircleColliding(const glm::vec2& pos1, float r1, const glm::vec2& pos2, float r2);

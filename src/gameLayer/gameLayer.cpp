@@ -13,6 +13,9 @@
 #include <core.h>
 #include <mainCharacter.h>
 #include <cmath>
+#include <circleCollision.h>
+#include <enemy.h>
+#include <bullet.h>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -32,13 +35,15 @@ int calculateRotation(const glm::vec2& characterPosition, const glm::vec2& mouse
 
 struct GameData
 {
-	glm::vec2 rectPos = {100,100};
+	Player player;
+	Enemy snatcher;
 
 }gameData;
 
 gl2d::Renderer2D renderer;
 gl2d::Texture idleMcSpriteSheet;
 gl2d::Texture movingMcSpriteSheet;
+gl2d::Texture snatcherSpriteSheet;
 float zoomLevel = 1.0f;
 float spriteScale = 4.0f;
 
@@ -47,13 +52,13 @@ bool initGame()
 	//initializing stuff for the renderer
 	gl2d::init();
 	renderer.create();
-	//platform::setFullScreen(true);
 
 	//loading the saved data. Loading an entire structure like this makes saving game data very easy.
 	platform::readEntireFile(RESOURCES_PATH "gameData.data", &gameData, sizeof(GameData));
 	
 	idleMcSpriteSheet.loadFromFile(RESOURCES_PATH "mainCharacterIdleAnimation.png", true);
 	movingMcSpriteSheet.loadFromFile(RESOURCES_PATH "mcMovingAnimation.png", true);
+	snatcherSpriteSheet.loadFromFile(RESOURCES_PATH "snatcherWalkingAnimation.png", true);
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
@@ -61,10 +66,11 @@ bool initGame()
 	/*glm::vec2 screenCenter = glm::vec2(w, h) * 0.5f;
 	glm::vec2 halfSprite = glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) * 0.5f;*/
 
-	gameData.rectPos = glm::vec2(1000, 1000);
-
-	std::cout << "Initialized Player Position: " << gameData.rectPos.x << ", " << gameData.rectPos.y << std::endl;
-
+	std::cout << "Initialized Player Position: " << gameData.player.position.x << ", " << gameData.player.position.y << std::endl;
+	
+	// Setup snatcher
+	gameData.snatcher.position = glm::vec2{ 1100, 1100 };
+	gameData.snatcher.isAlive = true;
 	
 	return true;
 }
@@ -103,27 +109,29 @@ bool gameLogic(float deltaTime)
 	if (platform::isButtonHeld(platform::Button::Left))
 	{
 		playerIsMoving = true;
-		gameData.rectPos.x -= deltaTime * 300;
+		gameData.player.position.x -= deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Right))
 	{
 		playerIsMoving = true;
-		gameData.rectPos.x += deltaTime * 300;
+		gameData.player.position.x += deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Up))
 	{
 		playerIsMoving = true;
-		gameData.rectPos.y -= deltaTime * 300;
+		gameData.player.position.y -= deltaTime * 300;
 	}
 	if (platform::isButtonHeld(platform::Button::Down))
 	{
 		playerIsMoving = true;
-		gameData.rectPos.y += deltaTime * 300;
+		gameData.player.position.y += deltaTime * 300;
 	}
 
 	glm::ivec2 mouseScreenPos = platform::getRelMousePosition();
 	glm::vec2 mouseWorldPos = getMouseWorldPosition(mouseScreenPos, camera, w, h);
-	int mcRotation = calculateRotation(gameData.rectPos, mouseWorldPos);
+	int mcRotation = calculateRotation(gameData.player.position, mouseWorldPos);
+
+	std::cout << "Snatcher is alive? - " << std::boolalpha << gameData.snatcher.isAlive << std::endl;
 
 	float offScreenMargin = 20.0f;
 
@@ -134,11 +142,9 @@ bool gameLogic(float deltaTime)
 	};
 	glm::vec2 minBounds = glm::vec2(-offScreenMargin) - halfSpriteSize;
 	glm::vec2 maxBounds = glm::vec2(w + offScreenMargin, h + offScreenMargin) + halfSpriteSize;
-	gameData.rectPos = glm::clamp(gameData.rectPos, minBounds, maxBounds);
+	gameData.player.position = glm::clamp(gameData.player.position, minBounds, maxBounds);
 	
-	// gameData.rectPos = glm::clamp(gameData.rectPos, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
-
-
+	// gameData.player.position = glm::clamp(gameData.player.position, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
 
 	// Render main character
 
@@ -148,13 +154,10 @@ bool gameLogic(float deltaTime)
 		int x = movingMcAnimation.currentFrame % xCount;
 		int y = movingMcAnimation.currentFrame / xCount;
 		glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
-		
-		std::cout << "Moving Anim Current Frame: " << movingMcAnimation.currentFrame << std::endl;
-
 		renderer.renderRectangle(
 			gl2d::Rect{
-				gameData.rectPos.x,
-				gameData.rectPos.y,
+				gameData.player.position.x,
+				gameData.player.position.y,
 				movingMcAnimation.frameSize.x * spriteScale,
 				movingMcAnimation.frameSize.y * spriteScale
 			},
@@ -165,7 +168,6 @@ bool gameLogic(float deltaTime)
 			uvCoords
 		);
 		updateAnimation(movingMcAnimation, deltaTime);
-
 	} else if (!playerIsMoving) {
 		int xCount = 33;	// Number of columns in the sprite sheet
 		int yCount = 1;		// Number of rows
@@ -175,8 +177,8 @@ bool gameLogic(float deltaTime)
 
 		renderer.renderRectangle(
 			gl2d::Rect{
-				gameData.rectPos.x,
-				gameData.rectPos.y,
+				gameData.player.position.x,
+				gameData.player.position.y,
 				idleMcAnimation.frameSize.x * spriteScale,
 				idleMcAnimation.frameSize.y * spriteScale
 			},
@@ -189,10 +191,42 @@ bool gameLogic(float deltaTime)
 
 		updateAnimation(idleMcAnimation, deltaTime);
 	}
+	
+	if (gameData.snatcher.isAlive) {
+		int xCount = 6;		// Number of columns in the sprite sheet
+		int yCount = 1;		// Number of rows
+		int x = idleMcAnimation.currentFrame % xCount;
+		int y = idleMcAnimation.currentFrame / xCount;
+		glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
+		
+		renderer.renderRectangle(
+			gl2d::Rect{
+				gameData.snatcher.position.x,
+				gameData.snatcher.position.y,
+				snatcherAnimation.frameSize.x * spriteScale,
+				snatcherAnimation.frameSize.y * spriteScale
+			},
+			snatcherSpriteSheet,
+			gl2d::Color4f{ 1, 1, 1, 1 },
+			glm::vec2{ 0, 0 },
+			0,
+			uvCoords
+		);
+		std::cout << "Snatcher rendered" << std::endl;
+	}
+
+	//if (isCircleColliding(gameData.player.position,
+	//	gameData.player.radius,
+	//	gameData.snatcher.position,
+	//	gameData.snatcher.radius)) {
+	//	gameData.snatcher.isAlive = false;
+	//	std::cout << "Collision detected!" << std::endl;
+	//}
+	
 
 	
 
-	/*renderer.renderRectangle({gameData.rectPos, 100, 100},
+	/*renderer.renderRectangle({gameData.player.position, 100, 100},
 		gl2d::Color4f{ 1, 0, 0, 1});*/
 
 	renderer.flush();
@@ -202,7 +236,7 @@ bool gameLogic(float deltaTime)
 	ImGui::Begin("Rectangle Control");
 	//ImGui::SliderFloat("Zoom level", &zoomLevel, 0.1f, 5.0f);
 
-	ImGui::DragFloat2("Positions", &gameData.rectPos[0]);
+	ImGui::DragFloat2("Positions", &gameData.player.position[0]);
 
 
 	ImGui::End();

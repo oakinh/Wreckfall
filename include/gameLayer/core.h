@@ -8,9 +8,3 @@ struct Animation {
 	float currentFrameTime = 0.0f;	// Accumulator for frame timing
 	int currentFrame = 0;			// Current frame index
 };
-
-struct Entity {
-	int health;
-	int movementSpeed;
-	int attack;
-};

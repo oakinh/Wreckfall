@@ -1,4 +1,5 @@
 #include <mainCharacter.h>
+#include <glm/glm.hpp>
 
 Animation idleMcAnimation = {
 	glm::vec2(16.0f, 16.0f),
@@ -11,13 +12,6 @@ Animation movingMcAnimation = {
 	12,
 	0.05f
 };
-
-Entity mainCharacter = {
-	100,
-	300,
-	50,
-};
-
 
 void updateAnimation(Animation& animation, float deltaTime) {
 	animation.currentFrameTime += deltaTime;
