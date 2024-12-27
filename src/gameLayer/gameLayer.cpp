@@ -44,6 +44,7 @@ gl2d::Renderer2D renderer;
 gl2d::Texture idleMcSpriteSheet;
 gl2d::Texture movingMcSpriteSheet;
 gl2d::Texture snatcherSpriteSheet;
+gl2d::Texture gunSprite;
 float zoomLevel = 1.0f;
 float spriteScale = 4.0f;
 
@@ -59,6 +60,7 @@ bool initGame()
 	idleMcSpriteSheet.loadFromFile(RESOURCES_PATH "mainCharacterIdleAnimation.png", true);
 	movingMcSpriteSheet.loadFromFile(RESOURCES_PATH "mcMovingAnimation.png", true);
 	snatcherSpriteSheet.loadFromFile(RESOURCES_PATH "snatcherWalkingAnimation.png", true);
+	gunSprite.loadFromFile(RESOURCES_PATH "dmrStatic.png", true);
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
@@ -97,6 +99,7 @@ bool gameLogic(float deltaTime)
 	renderer.updateWindowMetrics(w, h);
 
 #pragma endregion
+	renderer.clearScreen({ 1.0f, 1.0f, 1.0f, 1.0f });
 	glm::vec2 viewportSizeInWorld = glm::vec2(w, h) / zoomLevel;
 	gl2d::Camera camera;
 
@@ -190,7 +193,48 @@ bool gameLogic(float deltaTime)
 
 		updateAnimation(idleMcAnimation, deltaTime);
 	}
-	
+	// Calculate gun sprite position
+	glm::vec2 characterCenter = gameData.player.position + glm::vec2(8, 8) * spriteScale;
+
+	float gunOffsetDistance = 9.0f * spriteScale; // How far from the center the gun is
+	glm::vec2 gunOffset(
+		gunOffsetDistance * std::cos(glm::radians(float(mcRotation))),
+		-gunOffsetDistance * std::sin(glm::radians(float(mcRotation)))
+	);
+	glm::vec2 gunPosition = characterCenter + gunOffset;
+
+	float sideDist = -2.0f * spriteScale;
+
+	glm::vec2 sideOffset(
+		sideDist * std::cos(glm::radians(float(mcRotation + 90))),
+		-sideDist * std::sin(glm::radians(float(mcRotation + 90)))
+	);
+
+	gunPosition += sideOffset;
+
+	glm::vec2 gunSize = { 16.0f, 16.0f };
+	glm::vec2 gunScaledSize = gunSize * spriteScale;
+
+	//glm::vec2 gunPivot = { 0.0f, gunScaledSize.y * 0.5f };
+	//glm::vec2 gunPivot = { gunScaledSize.x * 0.5f, gunScaledSize.y * 0.5f };
+	glm::vec2 gunPivot = { 0.0f, 0.0f };
+	glm::vec2 gunPosCentered = gunPosition - gunScaledSize * 0.5f;
+
+	// Render gun
+	renderer.renderRectangle(
+		gl2d::Rect{
+			gunPosCentered.x,
+			gunPosCentered.y,
+			gunScaledSize.x,
+			gunScaledSize.y
+		},
+		gunSprite,
+		gl2d::Color4f{1, 1, 1, 1},
+		gunPivot,
+		mcRotation
+	);
+
+	// Render snatcher
 	if (gameData.snatcher.isAlive) {
 		int xCount = 6;		// Number of columns in the sprite sheet
 		int yCount = 1;		// Number of rows
