@@ -18,6 +18,7 @@
 #include <bullet.h>
 #include <gun.h>
 #include <gameData.h>
+#include <renderMap.h>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -60,6 +61,8 @@ bool initGame()
 	snatcherSpriteSheet.loadFromFile(RESOURCES_PATH "snatcherWalkingAnimation.png", true);
 	gunSprite.loadFromFile(RESOURCES_PATH "dmrStatic.png", true);
 	gunFireSprite.loadFromFile(RESOURCES_PATH "gunfire.png", true);
+
+	Map map = loadMap(RESOURCES_PATH "processed_map.json");
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
