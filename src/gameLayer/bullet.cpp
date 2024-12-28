@@ -10,10 +10,10 @@ glm::vec2 calculateMuzzlePos(int rotation, float spriteScale) {
 	// Calculate muzzlePosition for gunfire
 	glm::vec2 barrelLocalOffset = glm::vec2(7.0f, -1.0f) * spriteScale; // From Gun's center pos(8,8) to barrel pos(15,7)
 	float r = glm::radians(float(rotation));
-	glm::vec2 rotatedBarrelOffset(
-		barrelLocalOffset.x * std::cos(r) - barrelLocalOffset.y * std::sin(r),
+	glm::vec2 rotatedBarrelOffset = {
+		barrelLocalOffset.x * std::cos(r) + barrelLocalOffset.y * std::sin(r),
 		-barrelLocalOffset.x * std::sin(r) + barrelLocalOffset.y * std::cos(r)
-	);
+	};
 	return gameData.gun.position + rotatedBarrelOffset;
 };
 
@@ -26,7 +26,8 @@ Bullet fireBullet(glm::vec2 muzzlePos, int rotation, Gun gun, float spriteScale)
 			float r = glm::radians(float(rotation));
 			glm::vec2 direction(std::cos(r), -std::sin(r)); // Negative due to coordinate system
 			bullet.rotation = rotation;
-			bullet.position = muzzlePos + direction * spriteScale;
+			bullet.position = muzzlePos + direction * spriteScale * 3.0f;
+			//bullet.position = muzzlePos;
 			bullet.velocity = direction * gun.bulletSpeed;
 			return bullet;
 		}
