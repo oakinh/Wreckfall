@@ -48,7 +48,7 @@ void resolveCircleCollision(glm::vec2& pos1, float r1, glm::vec2& pos2, float r2
 //			if (!enemies[j].isAlive) continue;
 //
 //			if (isCircleColliding(bullets[i].position, bullets[i].radius, enemies[j].position, enemies[j].radius)) {
-//				 Handle collision
+//				// Handle collision
 //				bullets[i].isActive = false;
 //				enemies[j].isAlive = false;
 //				break;

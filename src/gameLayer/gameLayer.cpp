@@ -40,7 +40,7 @@ gl2d::Texture idleMcSpriteSheet;
 gl2d::Texture movingMcSpriteSheet;
 gl2d::Texture snatcherSpriteSheet;
 gl2d::Texture gunSprite;
-gl2d::Texture gunFire;
+gl2d::Texture gunFireSprite;
 float zoomLevel = 1.0f;
 float spriteScale = 4.0f;
 
@@ -50,6 +50,8 @@ bool initGame()
 	gl2d::init();
 	renderer.create();
 
+	std::cout << "Number of bullets: " << gameData.bullets.size() << std::endl;
+
 	//loading the saved data. Loading an entire structure like this makes saving game data very easy.
 	platform::readEntireFile(RESOURCES_PATH "gameData.data", &gameData, sizeof(GameData));
 	
@@ -57,7 +59,7 @@ bool initGame()
 	movingMcSpriteSheet.loadFromFile(RESOURCES_PATH "mcMovingAnimation.png", true);
 	snatcherSpriteSheet.loadFromFile(RESOURCES_PATH "snatcherWalkingAnimation.png", true);
 	gunSprite.loadFromFile(RESOURCES_PATH "dmrStatic.png", true);
-	gunFire.loadFromFile(RESOURCES_PATH "gunfire.png", true);
+	gunFireSprite.loadFromFile(RESOURCES_PATH "gunfire.png", true);
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
@@ -233,7 +235,39 @@ bool gameLogic(float deltaTime)
 		mcRotation
 	);
 	if (playerIsFiring) {
-		calculateMuzzlePos(mcRotation, spriteScale);
+		std::cout << "Player is firing, spawning bullet" << std::endl;
+		glm::vec2 muzzlePos = calculateMuzzlePos(mcRotation, spriteScale);
+		glm::vec2 bulletPos = fireBullet(muzzlePos, mcRotation, gameData.gun, spriteScale);
+		std::cout << "Bullet position x, y: " << bulletPos.x << ", " << bulletPos.y << std::endl;
+		renderer.renderRectangle(gl2d::Rect{
+			bulletPos.x,
+			bulletPos.y,
+			1.0f * spriteScale,
+			1.0f * spriteScale
+			},
+			gunFireSprite,
+			gl2d::Color4f{ 1, 1, 1, 1 },
+			glm::vec2{ 0, 0 },
+			mcRotation
+		);
+	}
+
+	updateBullets(deltaTime, w, h);
+
+	for (const Bullet& bullet : gameData.bullets) {
+		if (bullet.isActive) {
+			renderer.renderRectangle(gl2d::Rect{
+				bullet.position.x,
+				bullet.position.y,
+				1.0f * spriteScale,
+				1.0f * spriteScale
+				},
+				gunFireSprite,
+				gl2d::Color4f{ 1, 1, 1, 1 },
+				glm::vec2{ 0, 0 },
+				mcRotation
+			);
+		}
 	}
 
 	// Render snatcher
