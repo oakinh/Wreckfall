@@ -10,7 +10,7 @@ struct Bullet {
 	int damage;	// Damage dealt
 	bool isActive;	// Active state
 };
-
+glm::vec2 rotateYDown(glm::vec2 v, float r);
 glm::vec2 calculateMuzzlePos(int rotation, float spriteScale);
 
 Bullet fireBullet(glm::vec2 muzzlePos, int rotation, Gun gun, float spriteScale);

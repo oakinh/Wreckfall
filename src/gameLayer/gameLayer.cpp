@@ -197,41 +197,42 @@ bool gameLogic(float deltaTime)
 		updateAnimation(idleMcAnimation, deltaTime);
 	}
 	// Calculate gun sprite position
-	glm::vec2 characterCenter = gameData.player.position + glm::vec2(8, 8) * spriteScale;
+	glm::vec2 characterCenter = gameData.player.position + (glm::vec2(8, 8) * spriteScale);
+	gameData.gun.position = characterCenter;
 
-	float gunOffsetDistance = 9.0f * spriteScale; // How far from the center the gun is
-	glm::vec2 gunOffset(
-		gunOffsetDistance * std::cos(glm::radians(float(mcRotation))),
-		-gunOffsetDistance * std::sin(glm::radians(float(mcRotation)))
+	float forwardDist = 9.0f * spriteScale; // How far in front I want the gun center
+	float r = glm::radians(float(mcRotation));
+	glm::vec2 forwardOffset(
+		forwardDist * std::cos(r),
+		-forwardDist * std::sin(r)
 	);
-	glm::vec2 gunPosition = characterCenter + gunOffset;
+	gameData.gun.position += forwardOffset;
 
-	float sideDist = -2.0f * spriteScale;
+	float sideDist = -3.0f * spriteScale;
 
 	glm::vec2 sideOffset(
 		sideDist * std::cos(glm::radians(float(mcRotation + 90))),
 		-sideDist * std::sin(glm::radians(float(mcRotation + 90)))
 	);
 
-	gunPosition += sideOffset;
+	gameData.gun.position += sideOffset;
 
-	glm::vec2 gunSize = { 16.0f, 16.0f };
-	glm::vec2 gunScaledSize = gunSize * spriteScale;
+	glm::vec2 gunSize = { 16.0f * spriteScale, 16.0f * spriteScale};
+	glm::vec2 gunPivot = { 8.0f * spriteScale, 8.0f * spriteScale};
 
-	glm::vec2 gunPivot = { 0.0f, 0.0f };
-	gameData.gun.position = gunPosition - gunScaledSize * 0.5f;
+	glm::vec2 gunTopLeft = gameData.gun.position - gunPivot;
 
 	// Render gun
 	renderer.renderRectangle(
 		gl2d::Rect{
-			gameData.gun.position.x,
-			gameData.gun.position.y,
-			gunScaledSize.x,
-			gunScaledSize.y
+			gunTopLeft.x,
+			gunTopLeft.y,
+			gunSize.x,
+			gunSize.y
 		},
 		gunSprite,
 		gl2d::Color4f{1, 1, 1, 1},
-		gunPivot,
+		glm::vec2{0, 0}, // Pivot around center (8,8) in local coords
 		mcRotation
 	);
 	if (playerIsFiring) {
@@ -240,14 +241,15 @@ bool gameLogic(float deltaTime)
 		Bullet bullet = fireBullet(muzzlePos, mcRotation, gameData.gun, spriteScale);
 		std::cout << "Bullet position x, y: " << bullet.position.x << ", " << bullet.position.y << std::endl;
 		renderer.renderRectangle(gl2d::Rect{
-			bullet.position.x,
-			bullet.position.y,
+			bullet.position.x - (3.0f * spriteScale),
+			bullet.position.y - (0.5f * spriteScale),
 			6.0f * spriteScale,
 			1.0f * spriteScale
 			},
 			gunFireSprite,
 			gl2d::Color4f{ 1, 1, 1, 1 },
-			glm::vec2{ 3.0f * spriteScale, 0.5f * spriteScale },
+			//glm::vec2{ 3.0f * spriteScale, 0.5f * spriteScale },
+			glm::vec2{0, 0},
 			bullet.rotation
 		);
 	}
@@ -257,14 +259,15 @@ bool gameLogic(float deltaTime)
 	for (const Bullet& bullet : gameData.bullets) {
 		if (bullet.isActive) {
 			renderer.renderRectangle(gl2d::Rect{
-				bullet.position.x,
-				bullet.position.y,
+				bullet.position.x - (3.0f * spriteScale),
+				bullet.position.y - (0.5f * spriteScale),
 				6.0f * spriteScale,
 				1.0f * spriteScale
 				},
 				gunFireSprite,
 				gl2d::Color4f{ 1, 1, 1, 1 },
-				glm::vec2{ 3.0f * spriteScale, 0.5f * spriteScale },
+				//glm::vec2{ 3.0f * spriteScale, 0.5f * spriteScale },
+				glm::vec2{ 0, 0 },
 				bullet.rotation
 			);
 		}
