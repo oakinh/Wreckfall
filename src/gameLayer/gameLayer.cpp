@@ -237,18 +237,18 @@ bool gameLogic(float deltaTime)
 	if (playerIsFiring) {
 		std::cout << "Player is firing, spawning bullet" << std::endl;
 		glm::vec2 muzzlePos = calculateMuzzlePos(mcRotation, spriteScale);
-		glm::vec2 bulletPos = fireBullet(muzzlePos, mcRotation, gameData.gun, spriteScale);
-		std::cout << "Bullet position x, y: " << bulletPos.x << ", " << bulletPos.y << std::endl;
+		Bullet bullet = fireBullet(muzzlePos, mcRotation, gameData.gun, spriteScale);
+		std::cout << "Bullet position x, y: " << bullet.position.x << ", " << bullet.position.y << std::endl;
 		renderer.renderRectangle(gl2d::Rect{
-			bulletPos.x,
-			bulletPos.y,
-			1.0f * spriteScale,
+			bullet.position.x,
+			bullet.position.y,
+			6.0f * spriteScale,
 			1.0f * spriteScale
 			},
 			gunFireSprite,
 			gl2d::Color4f{ 1, 1, 1, 1 },
-			glm::vec2{ 0, 0 },
-			mcRotation
+			glm::vec2{ 3.0f * spriteScale, 0.5f * spriteScale },
+			bullet.rotation
 		);
 	}
 
@@ -259,13 +259,13 @@ bool gameLogic(float deltaTime)
 			renderer.renderRectangle(gl2d::Rect{
 				bullet.position.x,
 				bullet.position.y,
-				1.0f * spriteScale,
+				6.0f * spriteScale,
 				1.0f * spriteScale
 				},
 				gunFireSprite,
 				gl2d::Color4f{ 1, 1, 1, 1 },
-				glm::vec2{ 0, 0 },
-				mcRotation
+				glm::vec2{ 3.0f * spriteScale, 0.5f * spriteScale },
+				bullet.rotation
 			);
 		}
 	}

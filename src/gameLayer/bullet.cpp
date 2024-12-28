@@ -12,12 +12,12 @@ glm::vec2 calculateMuzzlePos(int rotation, float spriteScale) {
 	float r = glm::radians(float(rotation));
 	glm::vec2 rotatedBarrelOffset(
 		barrelLocalOffset.x * std::cos(r) - barrelLocalOffset.y * std::sin(r),
-		barrelLocalOffset.x * std::sin(r) + barrelLocalOffset.y * std::cos(r)
+		-barrelLocalOffset.x * std::sin(r) + barrelLocalOffset.y * std::cos(r)
 	);
 	return gameData.gun.position + rotatedBarrelOffset;
 };
 
-glm::vec2 fireBullet(glm::vec2 muzzlePos, int rotation, Gun gun, float spriteScale) {
+Bullet fireBullet(glm::vec2 muzzlePos, int rotation, Gun gun, float spriteScale) {
 	for (Bullet& bullet : gameData.bullets) {
 		if (!bullet.isActive) {
 			bullet.isActive = true;
@@ -25,10 +25,10 @@ glm::vec2 fireBullet(glm::vec2 muzzlePos, int rotation, Gun gun, float spriteSca
 			bullet.radius = 1.0f;
 			float r = glm::radians(float(rotation));
 			glm::vec2 direction(std::cos(r), -std::sin(r)); // Negative due to coordinate system
-
+			bullet.rotation = rotation;
 			bullet.position = muzzlePos + direction * spriteScale;
 			bullet.velocity = direction * gun.bulletSpeed;
-			return bullet.velocity;
+			return bullet;
 		}
 	}
 	std::cerr << "No inactive bullets available to reutilize for firing" << std::endl;
