@@ -42,6 +42,9 @@ gl2d::Texture movingMcSpriteSheet;
 gl2d::Texture snatcherSpriteSheet;
 gl2d::Texture gunSprite;
 gl2d::Texture gunFireSprite;
+gl2d::Texture tileset;
+gl2d::Texture animatedTiles;
+Map map;
 float zoomLevel = 1.0f;
 float spriteScale = 4.0f;
 
@@ -61,8 +64,10 @@ bool initGame()
 	snatcherSpriteSheet.loadFromFile(RESOURCES_PATH "snatcherWalkingAnimation.png", true);
 	gunSprite.loadFromFile(RESOURCES_PATH "dmrStatic.png", true);
 	gunFireSprite.loadFromFile(RESOURCES_PATH "gunfire.png", true);
+	tileset.loadFromFile(RESOURCES_PATH "wreckfall.tilemap.png", true);
+	animatedTiles.loadFromFile(RESOURCES_PATH "wreckfall.water.animation.png", true);
 
-	Map map = loadMap(RESOURCES_PATH "processed_map.json");
+	map = loadMap(RESOURCES_PATH "processed_map.json");
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
@@ -109,6 +114,8 @@ bool gameLogic(float deltaTime)
 	camera.position.y = 1000;
 	camera.position -= viewportSizeInWorld * 0.5f;
 	renderer.setCamera(camera);
+
+	renderMap(map, renderer, tileset, animatedTiles, 32, 32);
 
 	bool playerIsMoving = false;
 	if (platform::isButtonHeld(platform::Button::Left))

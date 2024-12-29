@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <tile.h>
+#include <gl2d/gl2d.h>
 
 using json = nlohmann::json;
 
@@ -70,4 +71,49 @@ Map loadMap(const std::string& filename) {
 	}
 	std::cout << "Map loaded successfully!\n";
 	return map;
+}
+
+void renderMap(const Map& map, gl2d::Renderer2D& renderer, gl2d::Texture& tilesetTexture, gl2d::Texture& animatedTexture, int tileWidth, int tileHeight) {
+	for (size_t row = 0; row < map.size(); ++row) {
+		for (size_t col = 0; col < map[row].size(); ++col) {
+			const Tile& tile = map[row][col];
+
+			float x = col * tileWidth;
+			float y = row * tileHeight;
+
+			if (tile.animated && !tile.uvFrames.empty()) {
+				// Use the first frame for now
+				const auto& uvFrame = tile.uvFrames[0];
+				renderer.renderRectangle(
+					gl2d::Rect{
+						x,
+						y,
+						(float)tileWidth,
+						(float)tileHeight
+					},
+					animatedTexture,
+					gl2d::Color4f{ 1, 1, 1, 1 },
+					glm::vec2{ 0, 0 },
+					0,
+					glm::vec4{uvFrame[0], uvFrame[1], uvFrame[2], uvFrame[3]}
+				);
+			}
+			else if (!tile.uv.empty()) {
+				const auto& uv = tile.uv;
+				renderer.renderRectangle(
+					gl2d::Rect{
+						x,
+						y,
+						(float)tileWidth,
+						(float)tileHeight
+					},
+					tilesetTexture,
+					gl2d::Color4f{ 1, 1, 1, 1 },
+					glm::vec2{ 0, 0 },
+					0,
+					glm::vec4{ tile.uv[0], tile.uv[1], tile.uv[2], tile.uv[3]}
+				);
+			}
+		}
+	}
 }
