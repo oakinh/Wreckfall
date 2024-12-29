@@ -40,13 +40,23 @@ gl2d::Renderer2D renderer;
 gl2d::Texture idleMcSpriteSheet;
 gl2d::Texture movingMcSpriteSheet;
 gl2d::Texture snatcherSpriteSheet;
+gl2d::Texture snatcherDeathSpriteSheet;
 gl2d::Texture gunSprite;
 gl2d::Texture gunFireSprite;
 gl2d::Texture tileset;
 gl2d::Texture animatedTiles;
+
 Map map;
 float zoomLevel = 1.0f;
 float spriteScale = 4.0f;
+int tileWidth = 32;
+int tileHeight = 32;
+int mapColumns = 10;
+int mapRows = 10;
+float mapWidth = (tileWidth * mapColumns * spriteScale);
+float mapHeight = (tileHeight * mapRows * spriteScale);
+float mapCenterX = mapWidth / 2;
+float mapCenterY = mapHeight / 2;
 
 bool initGame()
 {
@@ -61,24 +71,25 @@ bool initGame()
 	
 	idleMcSpriteSheet.loadFromFile(RESOURCES_PATH "mainCharacterIdleAnimation.png", true);
 	movingMcSpriteSheet.loadFromFile(RESOURCES_PATH "mcMovingAnimation.png", true);
-	snatcherSpriteSheet.loadFromFile(RESOURCES_PATH "snatcherWalkingAnimation.png", true);
+	snatcherSpriteSheet.loadFromFile(RESOURCES_PATH "snatcher.walking.png", true);
+	snatcherDeathSpriteSheet.loadFromFile(RESOURCES_PATH "snatcher.death.animation.png", true);
 	gunSprite.loadFromFile(RESOURCES_PATH "dmrStatic.png", true);
 	gunFireSprite.loadFromFile(RESOURCES_PATH "gunfire.png", true);
 	tileset.loadFromFile(RESOURCES_PATH "wreckfall.tilemap.png", true);
 	animatedTiles.loadFromFile(RESOURCES_PATH "wreckfall.water.animation.png", true);
 
-	map = loadMap(RESOURCES_PATH "processed_map.json");
+	map = loadMap(RESOURCES_PATH "processed_map_inverted.json");
+	writeMapToFile(map, RESOURCES_PATH "loaded_map.json");
 
 	int w = platform::getFrameBufferSizeX();
 	int h = platform::getFrameBufferSizeY();
 	
-	/*glm::vec2 screenCenter = glm::vec2(w, h) * 0.5f;
-	glm::vec2 halfSprite = glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) * 0.5f;*/
+	//glm::vec2 halfSprite = glm::vec2(idleMcAnimation.frameSize.x, idleMcAnimation.frameSize.y) * 0.5f;
 
 	std::cout << "Initialized Player Position: " << gameData.player.position.x << ", " << gameData.player.position.y << std::endl;
 	
 	// Setup snatcher
-	gameData.snatcher.position = glm::vec2{ 1100, 1100 };
+	gameData.snatcher.position = glm::vec2{ 300, 300 };
 	gameData.snatcher.isAlive = true;
 	
 	return true;
@@ -110,12 +121,11 @@ bool gameLogic(float deltaTime)
 	glm::vec2 viewportSizeInWorld = glm::vec2(w, h) / zoomLevel;
 	gl2d::Camera camera;
 
-	camera.position.x = 1000;
-	camera.position.y = 1000;
-	camera.position -= viewportSizeInWorld * 0.5f;
+	camera.position.x = mapCenterX - (w / 2);
+	camera.position.y = mapCenterY - (h / 2);
 	renderer.setCamera(camera);
 
-	renderMap(map, renderer, tileset, animatedTiles, 32, 32);
+	renderMap(map, renderer, tileset, animatedTiles, 32, 32, spriteScale);
 
 	bool playerIsMoving = false;
 	if (platform::isButtonHeld(platform::Button::Left))
@@ -285,13 +295,13 @@ bool gameLogic(float deltaTime)
 
 	// Render snatcher
 	if (gameData.snatcher.isAlive) {
-		int xCount = 6;		// Number of columns in the sprite sheet
+		int xCount = 9;		// Number of columns in the sprite sheet
 		int yCount = 1;		// Number of rows
-		int x = idleMcAnimation.currentFrame % xCount;
-		int y = idleMcAnimation.currentFrame / xCount;
+		int x = snatcherAnimation.currentFrame % xCount;
+		int y = snatcherAnimation.currentFrame / xCount;
 		glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
 		
-		/*renderer.renderRectangle(
+		renderer.renderRectangle(
 			gl2d::Rect{
 				gameData.snatcher.position.x,
 				gameData.snatcher.position.y,
@@ -303,11 +313,9 @@ bool gameLogic(float deltaTime)
 			glm::vec2{ 0, 0 },
 			0,
 			uvCoords
-		);*/
-		// std::cout << "Snatcher rendered" << std::endl;
-
-		renderer.renderRectangle(gl2d::Rect{gameData.snatcher.position.x, gameData.snatcher.position.y, 64, 64},
-		gl2d::Color4f{ 1, 0, 0, 1});
+		);
+		 std::cout << "Snatcher rendered" << std::endl;
+		 //updateAnimation(snatcherAnimation, deltaTime);
 	}
 	else {
 		std::cout << "Snatcher detected as NOT alive" << std::endl;

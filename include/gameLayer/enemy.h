@@ -12,3 +12,4 @@ struct Enemy {
 };
 
 extern Animation snatcherAnimation;
+extern Animation snatcherDeathAnimation;

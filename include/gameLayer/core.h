@@ -8,3 +8,5 @@ struct Animation {
 	float currentFrameTime = 0.0f;	// Accumulator for frame timing
 	int currentFrame = 0;			// Current frame index
 };
+
+glm::vec2 getTopLeft(glm::vec2 centerPos, float width, float height, float spriteScale);

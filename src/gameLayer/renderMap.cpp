@@ -6,6 +6,37 @@
 
 using json = nlohmann::json;
 
+void printTile(const Tile& tile) {
+	std::cout << "{\n";
+	std::cout << "  \"tileID\": " << tile.tileID << ",\n";
+	std::cout << "  \"passable\": " << (tile.passable ? "true" : "false") << ",\n";
+	std::cout << "  \"type\": \"" << tile.type << "\",\n";
+
+	std::cout << "  \"uv\": [";
+	for (size_t i = 0; i < tile.uv.size(); ++i) {
+		std::cout << tile.uv[i];
+		if (i < tile.uv.size() - 1) std::cout << ", ";
+	}
+	std::cout << "],\n";
+
+	std::cout << "  \"uvFrames\": [\n";
+	for (size_t i = 0; i < tile.uvFrames.size(); ++i) {
+		std::cout << "    [";
+		for (size_t j = 0; j < tile.uvFrames[i].size(); ++j) {
+			std::cout << tile.uvFrames[i][j];
+			if (j < tile.uvFrames[i].size() - 1) std::cout << ", ";
+		}
+		std::cout << "]";
+		if (i < tile.uvFrames.size() - 1) std::cout << ",";
+		std::cout << "\n";
+	}
+	std::cout << "  ],\n";
+
+	std::cout << "  \"animated\": " << (tile.animated ? "true" : "false") << ",\n";
+	std::cout << "  \"frames\": " << tile.frames << "\n";
+	std::cout << "}" << std::endl;
+}
+
 Map loadMap(const std::string& filename) {
 	std::ifstream file(filename);
 	if (!file.is_open()) {
@@ -73,7 +104,7 @@ Map loadMap(const std::string& filename) {
 	return map;
 }
 
-void renderMap(const Map& map, gl2d::Renderer2D& renderer, gl2d::Texture& tilesetTexture, gl2d::Texture& animatedTexture, int tileWidth, int tileHeight) {
+void renderMap(const Map& map, gl2d::Renderer2D& renderer, gl2d::Texture& tilesetTexture, gl2d::Texture& animatedTexture, int tileWidth, int tileHeight, float spriteScale) {
 	for (size_t row = 0; row < map.size(); ++row) {
 		for (size_t col = 0; col < map[row].size(); ++col) {
 			const Tile& tile = map[row][col];
@@ -86,34 +117,95 @@ void renderMap(const Map& map, gl2d::Renderer2D& renderer, gl2d::Texture& tilese
 				const auto& uvFrame = tile.uvFrames[0];
 				renderer.renderRectangle(
 					gl2d::Rect{
-						x,
-						y,
-						(float)tileWidth,
-						(float)tileHeight
+						x * spriteScale,
+						y * spriteScale,
+						(float)tileWidth * spriteScale,
+						(float)tileHeight * spriteScale
 					},
 					animatedTexture,
 					gl2d::Color4f{ 1, 1, 1, 1 },
 					glm::vec2{ 0, 0 },
 					0,
-					glm::vec4{uvFrame[0], uvFrame[1], uvFrame[2], uvFrame[3]}
+					glm::vec4{ uvFrame[0], uvFrame[1], uvFrame[2], uvFrame[3] }
 				);
 			}
 			else if (!tile.uv.empty()) {
 				const auto& uv = tile.uv;
 				renderer.renderRectangle(
 					gl2d::Rect{
-						x,
-						y,
-						(float)tileWidth,
-						(float)tileHeight
+						x * spriteScale,
+						y * spriteScale,
+						(float)tileWidth * spriteScale,
+						(float)tileHeight * spriteScale
 					},
 					tilesetTexture,
 					gl2d::Color4f{ 1, 1, 1, 1 },
 					glm::vec2{ 0, 0 },
 					0,
-					glm::vec4{ tile.uv[0], tile.uv[1], tile.uv[2], tile.uv[3]}
+					glm::vec4{ tile.uv[0], tile.uv[1], tile.uv[2], tile.uv[3] }
 				);
+			}
+			else {
+				std::cerr << "Error: unknown tile encountered" << std::endl;
+				printTile(tile);
 			}
 		}
 	}
+}
+
+void writeTileToStream(const Tile& tile, std::ofstream& out) {
+	out << "{\n";
+	out << "  \"tileID\": " << tile.tileID << ",\n";
+	out << "  \"passable\": " << (tile.passable ? "true" : "false") << ",\n";
+	out << "  \"type\": \"" << tile.type << "\",\n";
+
+	out << "  \"uv\": [";
+	for (size_t i = 0; i < tile.uv.size(); ++i) {
+		out << tile.uv[i];
+		if (i < tile.uv.size() - 1) out << ", ";
+	}
+	out << "],\n";
+
+	out << "  \"uvFrames\": [\n";
+	for (size_t i = 0; i < tile.uvFrames.size(); ++i) {
+		out << "    [";
+		for (size_t j = 0; j < tile.uvFrames[i].size(); ++j) {
+			out << tile.uvFrames[i][j];
+			if (j < tile.uvFrames[i].size() - 1) out << ", ";
+		}
+		out << "]";
+		if (i < tile.uvFrames.size() - 1) out << ",";
+		out << "\n";
+	}
+	out << "  ],\n";
+
+	out << "  \"animated\": " << (tile.animated ? "true" : "false") << ",\n";
+	out << "  \"frames\": " << tile.frames << "\n";
+	out << "}";
+}
+
+void writeMapToFile(const Map& map, const std::string& filename) {
+	std::ofstream outFile(filename);
+	if (!outFile.is_open()) {
+		std::cerr << "Failed to open file: " << filename << "\n";
+		return;
+	}
+
+	outFile << "[\n"; // Start of the Map
+	for (size_t i = 0; i < map.size(); ++i) {
+		outFile << "  [\n"; // Start of a row
+		for (size_t j = 0; j < map[i].size(); ++j) {
+			outFile << "    ";
+			writeTileToStream(map[i][j], outFile);
+			if (j < map[i].size() - 1) outFile << ",";
+			outFile << "\n";
+		}
+		outFile << "  ]";
+		if (i < map.size() - 1) outFile << ",";
+		outFile << "\n";
+	}
+	outFile << "]\n"; // End of the Map
+
+	outFile.close();
+	std::cout << "Map written to file: " << filename << "\n";
 }
