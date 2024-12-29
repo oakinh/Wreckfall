@@ -9,8 +9,10 @@ bool isCircleColliding(const glm::vec2& pos1, float r1, const glm::vec2& pos2, f
 	// Top left corner -> center
 	float r1Adjusted = r1 * spriteScale;
 	float r2Adjusted = r2 * spriteScale;
-	glm::vec2 center1 = pos1 + glm::vec2(r1Adjusted, r1Adjusted);
-	glm::vec2 center2 = pos2 + glm::vec2(r2Adjusted, r2Adjusted);
+	//glm::vec2 center1 = pos1 + glm::vec2(r1Adjusted, r1Adjusted);
+	//glm::vec2 center2 = pos2 + glm::vec2(r2Adjusted, r2Adjusted);
+	glm::vec2 center1 = pos1;
+	glm::vec2 center2 = pos2;
 
 	// Distance between centers
 	glm::vec2 diff = center1 - center2;
@@ -21,10 +23,13 @@ bool isCircleColliding(const glm::vec2& pos1, float r1, const glm::vec2& pos2, f
 };
 
 void resolveCircleCollision(glm::vec2& pos1, float r1, glm::vec2& pos2, float r2, float spriteScale) {
+	// Top left corner -> center
 	float r1Adjusted = r1 * spriteScale;
 	float r2Adjusted = r2 * spriteScale;
-	glm::vec2 center1 = pos1 + glm::vec2(r1Adjusted, r1Adjusted);
-	glm::vec2 center2 = pos2 + glm::vec2(r2Adjusted, r2Adjusted);
+	//glm::vec2 center1 = pos1 + glm::vec2(r1Adjusted, r1Adjusted);
+	//glm::vec2 center2 = pos2 + glm::vec2(r2Adjusted, r2Adjusted);
+	glm::vec2 center1 = pos1;
+	glm::vec2 center2 = pos2;
 	
 	glm::vec2 diff = center2 - center1;
 	float distance = glm::length(diff);

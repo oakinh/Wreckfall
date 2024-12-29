@@ -19,22 +19,6 @@
 #include <gun.h>
 #include <gameData.h>
 #include <renderMap.h>
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-glm::vec2 getMouseWorldPosition(const glm::ivec2& mouseScreenPos, const gl2d::Camera& camera, float windowWidth, float windowHeight) {
-	return gl2d::internal::convertPoint(camera, glm::vec2(mouseScreenPos), windowWidth, windowHeight);
-}
-
-int calculateRotation(const glm::vec2& characterPosition, const glm::vec2& mouseWorldPos) {
-	glm::vec2 spriteSize = { 16, 16 };
-	glm::vec2 characterCenter = characterPosition + spriteSize;
-	glm::vec2 direction = mouseWorldPos - characterCenter;
-	float angleRadians = std::atan2(direction.y, direction.x);
-	float angleDegrees = -angleRadians * 180.0f / M_PI;
-	return static_cast<int>(std::fmod(angleDegrees + 360.0f, 360.0f));
-}
 
 gl2d::Renderer2D renderer;
 gl2d::Texture idleMcSpriteSheet;
@@ -172,6 +156,8 @@ bool gameLogic(float deltaTime)
 	
 	// gameData.player.position = glm::clamp(gameData.player.position, glm::vec2{ 0,0 }, glm::vec2{ w - 100,h - 100 });
 
+	glm::vec2 playerTopLeft = getTopLeft(gameData.player.position, 16, 16, spriteScale);
+
 	// Render main character
 	if (playerIsMoving) {
 		int xCount = 12;	// Number of columns in the sprite sheet
@@ -179,10 +165,11 @@ bool gameLogic(float deltaTime)
 		int x = movingMcAnimation.currentFrame % xCount;
 		int y = movingMcAnimation.currentFrame / xCount;
 		glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
+
 		renderer.renderRectangle(
 			gl2d::Rect{
-				gameData.player.position.x,
-				gameData.player.position.y,
+				playerTopLeft.x,
+				playerTopLeft.y,
 				movingMcAnimation.frameSize.x * spriteScale,
 				movingMcAnimation.frameSize.y * spriteScale
 			},
@@ -202,8 +189,8 @@ bool gameLogic(float deltaTime)
 
 		renderer.renderRectangle(
 			gl2d::Rect{
-				gameData.player.position.x,
-				gameData.player.position.y,
+				playerTopLeft.x,
+				playerTopLeft.y,
 				idleMcAnimation.frameSize.x * spriteScale,
 				idleMcAnimation.frameSize.y * spriteScale
 			},
@@ -217,7 +204,8 @@ bool gameLogic(float deltaTime)
 		updateAnimation(idleMcAnimation, deltaTime);
 	}
 	// Calculate gun sprite position
-	glm::vec2 characterCenter = gameData.player.position + (glm::vec2(8, 8) * spriteScale);
+	//glm::vec2 characterCenter = gameData.player.position + (glm::vec2(8, 8) * spriteScale);
+	glm::vec2 characterCenter = gameData.player.position;
 	gameData.gun.position = characterCenter;
 
 	float forwardDist = 9.0f * spriteScale; // How far in front I want the gun center
@@ -300,11 +288,13 @@ bool gameLogic(float deltaTime)
 		int x = snatcherAnimation.currentFrame % xCount;
 		int y = snatcherAnimation.currentFrame / xCount;
 		glm::vec4 uvCoords = gl2d::computeTextureAtlas(xCount, yCount, x, y, false);
+
+		glm::vec2 snatcherTopLeft = getTopLeft(gameData.snatcher.position, 16, 16, spriteScale);
 		
 		renderer.renderRectangle(
 			gl2d::Rect{
-				gameData.snatcher.position.x,
-				gameData.snatcher.position.y,
+				snatcherTopLeft.x,
+				snatcherTopLeft.y,
 				snatcherAnimation.frameSize.x * spriteScale,
 				snatcherAnimation.frameSize.y * spriteScale
 			},

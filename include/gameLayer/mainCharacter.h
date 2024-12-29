@@ -7,8 +7,8 @@ extern Animation idleMcAnimation;
 extern Animation movingMcAnimation;
 
 struct Player {
-	glm::vec2 position = { 1000, 1000 };
-	float radius = 8.0f;						// Collision radius
+	glm::vec2 position = { 100, 100 };		// Center of sprite
+	float radius = 8.0f;					// Collision radius
 	int health = 100;
 	int movementSpeed = 300;
 };
