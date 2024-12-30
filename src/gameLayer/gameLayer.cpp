@@ -109,29 +109,29 @@ bool gameLogic(float deltaTime)
 	camera.position.x = mapCenterX - (w / 2);
 	camera.position.y = mapCenterY - (h / 2);
 	renderer.setCamera(camera);
-
+	//gameData.player.position = { 200, 200 };
 	renderMap(map, renderer, tileset, animatedTiles, 32, 32, spriteScale);
 
 	bool playerIsMoving = false;
 	if (platform::isButtonHeld(platform::Button::Left))
 	{
 		playerIsMoving = true;
-		gameData.player.position.x -= deltaTime * 300;
+		gameData.player.position.x -= deltaTime * gameData.player.movementSpeed;
 	}
 	if (platform::isButtonHeld(platform::Button::Right))
 	{
 		playerIsMoving = true;
-		gameData.player.position.x += deltaTime * 300;
+		gameData.player.position.x += deltaTime * gameData.player.movementSpeed;
 	}
 	if (platform::isButtonHeld(platform::Button::Up))
 	{
 		playerIsMoving = true;
-		gameData.player.position.y -= deltaTime * 300;
+		gameData.player.position.y -= deltaTime * gameData.player.movementSpeed;
 	}
 	if (platform::isButtonHeld(platform::Button::Down))
 	{
 		playerIsMoving = true;
-		gameData.player.position.y += deltaTime * 300;
+		gameData.player.position.y += deltaTime * gameData.player.movementSpeed;
 	}
 	bool playerIsFiring = false;
 	if (platform::isLMousePressed()) {
@@ -305,7 +305,6 @@ bool gameLogic(float deltaTime)
 			0,
 			uvCoords
 		);
-		 std::cout << "Snatcher rendered" << std::endl;
 		 //updateAnimation(snatcherAnimation, deltaTime);
 	}
 	else {
@@ -326,7 +325,17 @@ bool gameLogic(float deltaTime)
 		std::cout << "Collision detected and resolved!" << std::endl;
 	}
 
-	isPlayerCollidingWithTile(map, gameData.player, glm::vec2{ tileWidth, tileHeight }, spriteScale);
+	isCollidingWithTile(map, gameData.player.position, gameData.player.radius, glm::vec2{ tileWidth, tileHeight }, glm::ivec2{ mapColumns, mapRows }, spriteScale);
+	glm::vec2 extraMapBorderAllowance = glm::vec2(tileWidth * spriteScale, tileHeight * spriteScale);
+
+	if (gameData.player.position.x < -extraMapBorderAllowance.x ||
+		gameData.player.position.x > mapWidth + extraMapBorderAllowance.x ||
+		gameData.player.position.y < -extraMapBorderAllowance.y ||
+		gameData.player.position.y > mapHeight + extraMapBorderAllowance.y)
+	{
+		std::cout << "Player exited map boundaries. Teleporting to (200, 200)." << std::endl;
+		gameData.player.position = glm::vec2(200.0f, 200.0f);
+	}
 
 	renderer.flush();
 

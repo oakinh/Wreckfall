@@ -1,3 +1,3 @@
 #pragma once
 
-bool isPlayerCollidingWithTile(Map map, Player player, glm::vec2 tileSize, float spriteScale);
+bool isCollidingWithTile(Map map, glm::vec2& position, float radius, glm::vec2 tileSize, glm::ivec2 mapSize, float spriteScale);
