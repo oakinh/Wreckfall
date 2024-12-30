@@ -11,6 +11,7 @@ struct Player {
 	float radius = 8.0f;					// Collision radius
 	int health = 100;
 	int movementSpeed = 300;
+	int rotation;
 };
 
 void updateAnimation(Animation& animation, float deltaTime);

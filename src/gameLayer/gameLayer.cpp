@@ -19,6 +19,7 @@
 #include <gun.h>
 #include <gameData.h>
 #include <renderMap.h>
+#include <tileCollision.h>
 
 gl2d::Renderer2D renderer;
 gl2d::Texture idleMcSpriteSheet;
@@ -101,7 +102,7 @@ bool gameLogic(float deltaTime)
 	renderer.updateWindowMetrics(w, h);
 
 #pragma endregion
-	renderer.clearScreen({ 1.0f, 1.0f, 1.0f, 1.0f });
+	// renderer.clearScreen({ 1.0f, 1.0f, 1.0f, 1.0f }); // To make the background white
 	glm::vec2 viewportSizeInWorld = glm::vec2(w, h) / zoomLevel;
 	gl2d::Camera camera;
 
@@ -139,7 +140,7 @@ bool gameLogic(float deltaTime)
 
 	glm::ivec2 mouseScreenPos = platform::getRelMousePosition();
 	glm::vec2 mouseWorldPos = getMouseWorldPosition(mouseScreenPos, camera, w, h);
-	int mcRotation = calculateRotation(gameData.player.position, mouseWorldPos);
+	gameData.player.rotation = calculateRotation(gameData.player.position, mouseWorldPos);
 
 	//std::cout << "Snatcher is alive? - " << std::boolalpha << gameData.snatcher.isAlive << std::endl;
 
@@ -176,7 +177,7 @@ bool gameLogic(float deltaTime)
 			movingMcSpriteSheet,
 			gl2d::Color4f{ 1, 1, 1, 1 },
 			glm::vec2{ 0, 0 },
-			mcRotation,
+			gameData.player.rotation,
 			uvCoords
 		);
 		updateAnimation(movingMcAnimation, deltaTime);
@@ -197,7 +198,7 @@ bool gameLogic(float deltaTime)
 			idleMcSpriteSheet,
 			gl2d::Color4f{ 1, 1, 1, 1 },
 			glm::vec2{ 0, 0 },
-			mcRotation,
+			gameData.player.rotation,
 			uvCoords
 		);
 
@@ -209,7 +210,7 @@ bool gameLogic(float deltaTime)
 	gameData.gun.position = characterCenter;
 
 	float forwardDist = 9.0f * spriteScale; // How far in front I want the gun center
-	float r = glm::radians(float(mcRotation));
+	float r = glm::radians(float(gameData.player.rotation));
 	glm::vec2 forwardOffset(
 		forwardDist * std::cos(r),
 		-forwardDist * std::sin(r)
@@ -219,8 +220,8 @@ bool gameLogic(float deltaTime)
 	float sideDist = -3.0f * spriteScale;
 
 	glm::vec2 sideOffset(
-		sideDist * std::cos(glm::radians(float(mcRotation + 90))),
-		-sideDist * std::sin(glm::radians(float(mcRotation + 90)))
+		sideDist * std::cos(glm::radians(float(gameData.player.rotation + 90))),
+		-sideDist * std::sin(glm::radians(float(gameData.player.rotation + 90)))
 	);
 
 	gameData.gun.position += sideOffset;
@@ -241,12 +242,12 @@ bool gameLogic(float deltaTime)
 		gunSprite,
 		gl2d::Color4f{1, 1, 1, 1},
 		glm::vec2{0, 0}, // Pivot around center (8,8) in local coords
-		mcRotation
+		gameData.player.rotation
 	);
 	if (playerIsFiring) {
 		std::cout << "Player is firing, spawning bullet" << std::endl;
-		glm::vec2 muzzlePos = calculateMuzzlePos(mcRotation, spriteScale);
-		Bullet bullet = fireBullet(muzzlePos, mcRotation, gameData.gun, spriteScale);
+		glm::vec2 muzzlePos = calculateMuzzlePos(gameData.player.rotation, spriteScale);
+		Bullet bullet = fireBullet(muzzlePos, gameData.player.rotation, gameData.gun, spriteScale);
 		std::cout << "Bullet position x, y: " << bullet.position.x << ", " << bullet.position.y << std::endl;
 		renderer.renderRectangle(gl2d::Rect{
 			bullet.position.x - (3.0f * spriteScale),
@@ -324,6 +325,8 @@ bool gameLogic(float deltaTime)
 			gameData.snatcher.radius, spriteScale);
 		std::cout << "Collision detected and resolved!" << std::endl;
 	}
+
+	isPlayerCollidingWithTile(map, gameData.player, glm::vec2{ tileWidth, tileHeight }, spriteScale);
 
 	renderer.flush();
 
