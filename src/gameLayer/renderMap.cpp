@@ -3,6 +3,7 @@
 #include <iostream>
 #include <tile.h>
 #include <gl2d/gl2d.h>
+#include <core.h>
 
 using json = nlohmann::json;
 
@@ -107,21 +108,25 @@ Map loadMap(const std::string& filename) {
 	return map;
 }
 
-void renderMap(const Map& map, gl2d::Renderer2D& renderer, gl2d::Texture& tilesetTexture, gl2d::Texture& animatedTexture, int tileWidth, int tileHeight, float spriteScale) {
+void renderMap(const Map& map, gl2d::Renderer2D& renderer, gl2d::Texture& tilesetTexture, gl2d::Texture& animatedTexture, int tileWidth, int tileHeight, float spriteScale, float deltaTime) {
 	for (size_t row = 0; row < map.size(); ++row) {
 		for (size_t col = 0; col < map[row].size(); ++col) {
 			const Tile& tile = map[row][col];
 
-			float x = col * tileWidth;
-			float y = row * tileHeight;
+			float posX = col * tileWidth;
+			float posY = row * tileHeight;
 
 			if (tile.animated && !tile.uvFrames.empty()) {
-				// Use the first frame for now
-				const auto& uvFrame = tile.uvFrames[0];
+				// Render river animation
+				int frameColumns = riverAnimation.totalFrames;
+				int frameRows = 1; // Number of rows
+				int frameX = riverAnimation.currentFrame % frameColumns;
+				int frameY = riverAnimation.currentFrame / frameColumns;
+				glm::vec4 uvCoords = gl2d::computeTextureAtlas(frameColumns, frameRows, frameX, frameY, false);
 				renderer.renderRectangle(
 					gl2d::Rect{
-						x * spriteScale,
-						y * spriteScale,
+						posX * spriteScale,
+						posY * spriteScale,
 						(float)tileWidth * spriteScale,
 						(float)tileHeight * spriteScale
 					},
@@ -129,15 +134,16 @@ void renderMap(const Map& map, gl2d::Renderer2D& renderer, gl2d::Texture& tilese
 					gl2d::Color4f{ 1, 1, 1, 1 },
 					glm::vec2{ 0, 0 },
 					0,
-					glm::vec4{ uvFrame[0], uvFrame[1], uvFrame[2], uvFrame[3] }
+					uvCoords
 				);
+				updateAnimation(riverAnimation, deltaTime);
 			}
 			else if (!tile.uv.empty()) {
 				const auto& uv = tile.uv;
 				renderer.renderRectangle(
 					gl2d::Rect{
-						x * spriteScale,
-						y * spriteScale,
+						posX * spriteScale,
+						posY * spriteScale,
 						(float)tileWidth * spriteScale,
 						(float)tileHeight * spriteScale
 					},

@@ -1,4 +1,5 @@
 #pragma once
+#include <core.h>
 
 struct Tile {
 	int tileID;
@@ -9,5 +10,7 @@ struct Tile {
 	bool animated;
 	int frames;
 };
+
+extern Animation riverAnimation;
 
 using Map = std::vector<std::vector<Tile>>;

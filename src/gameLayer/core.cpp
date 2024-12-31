@@ -1,5 +1,6 @@
 #include <glm/glm.hpp>
 #include <gl2d/gl2d.h>
+#include <core.h>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -20,4 +21,13 @@ int calculateRotation(const glm::vec2& characterPosition, const glm::vec2& mouse
 	float angleRadians = std::atan2(direction.y, direction.x);
 	float angleDegrees = -angleRadians * 180.0f / M_PI;
 	return static_cast<int>(std::fmod(angleDegrees + 360.0f, 360.0f));
+}
+
+void updateAnimation(Animation& animation, float deltaTime) {
+	animation.currentFrameTime += deltaTime;
+
+	if (animation.currentFrameTime >= animation.frameTime) {
+		animation.currentFrameTime = 0.0f;
+		animation.currentFrame = (animation.currentFrame + 1) % animation.totalFrames;
+	}
 }

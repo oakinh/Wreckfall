@@ -13,3 +13,4 @@ struct Animation {
 glm::vec2 getTopLeft(glm::vec2 centerPos, float width, float height, float spriteScale);
 glm::vec2 getMouseWorldPosition(const glm::ivec2& mouseScreenPos, const gl2d::Camera& camera, float windowWidth, float windowHeight);
 int calculateRotation(const glm::vec2& characterPosition, const glm::vec2& mouseWorldPos);
+void updateAnimation(Animation& animation, float deltaTime);

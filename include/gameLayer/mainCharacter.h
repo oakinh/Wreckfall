@@ -14,6 +14,4 @@ struct Player {
 	int rotation;
 };
 
-void updateAnimation(Animation& animation, float deltaTime);
-
 #endif // MAIN_CHARACTER_H

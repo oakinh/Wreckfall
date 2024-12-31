@@ -13,12 +13,3 @@ Animation movingMcAnimation = {
 	0.05f
 };
 
-void updateAnimation(Animation& animation, float deltaTime) {
-	animation.currentFrameTime += deltaTime;
-
-	if (animation.currentFrameTime >= animation.frameTime) {
-		animation.currentFrameTime = 0.0f;
-		animation.currentFrame = (animation.currentFrame + 1) % animation.totalFrames;
-	}
-}
-

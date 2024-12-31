@@ -110,7 +110,7 @@ bool gameLogic(float deltaTime)
 	camera.position.y = mapCenterY - (h / 2);
 	renderer.setCamera(camera);
 	//gameData.player.position = { 200, 200 };
-	renderMap(map, renderer, tileset, animatedTiles, 32, 32, spriteScale);
+	renderMap(map, renderer, tileset, animatedTiles, 32, 32, spriteScale, deltaTime);
 
 	bool playerIsMoving = false;
 	if (platform::isButtonHeld(platform::Button::Left))
