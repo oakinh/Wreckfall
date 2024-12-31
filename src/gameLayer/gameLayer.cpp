@@ -74,7 +74,8 @@ bool initGame()
 	std::cout << "Initialized Player Position: " << gameData.player.position.x << ", " << gameData.player.position.y << std::endl;
 	
 	// Setup snatcher
-	gameData.snatcher.position = glm::vec2{ 300, 300 };
+	//gameData.snatcher.position = glm::vec2{ 300, 300 };
+	gameData.snatcher.movementSpeed = 100;
 	gameData.snatcher.isAlive = true;
 	
 	return true;
@@ -89,6 +90,8 @@ bool initGame()
 
 bool gameLogic(float deltaTime)
 {
+	std::cout << "Snatcher position: (" << gameData.snatcher.position.x << ", " << gameData.snatcher.position.y << ")" << std::endl;
+
 #pragma region init stuff
 	static int prevWindowWidth = 0;
 	static int prevWindowHeight = 0;
@@ -294,18 +297,23 @@ bool gameLogic(float deltaTime)
 		
 		renderer.renderRectangle(
 			gl2d::Rect{
-				snatcherTopLeft.x,
-				snatcherTopLeft.y,
+/*				snatcherTopLeft.x,
+				snatcherTopLeft.y,*/
+				gameData.snatcher.position.x,
+				gameData.snatcher.position.y,
 				snatcherAnimation.frameSize.x * spriteScale,
 				snatcherAnimation.frameSize.y * spriteScale
 			},
 			snatcherSpriteSheet,
 			gl2d::Color4f{ 1, 1, 1, 1 },
 			glm::vec2{ 0, 0 },
-			0,
+			gameData.snatcher.rotation,
 			uvCoords
 		);
-		 //updateAnimation(snatcherAnimation, deltaTime);
+		 updateAnimation(snatcherAnimation, deltaTime);
+		
+		moveEnemy(gameData.snatcher, deltaTime, gameData.player.position);
+		std::cout << "Snatcher position: (" << gameData.snatcher.position.x << ", " << gameData.snatcher.position.y << ")" << std::endl;
 	}
 	else {
 		std::cout << "Snatcher detected as NOT alive" << std::endl;
@@ -325,7 +333,10 @@ bool gameLogic(float deltaTime)
 		std::cout << "Collision detected and resolved!" << std::endl;
 	}
 
+	// Check player-map collision
 	isCollidingWithTile(map, gameData.player.position, gameData.player.radius, glm::vec2{ tileWidth, tileHeight }, glm::ivec2{ mapColumns, mapRows }, spriteScale);
+	// Check snatcher-map collision
+	isCollidingWithTile(map, gameData.snatcher.position, gameData.snatcher.radius, glm::vec2{ tileWidth, tileHeight }, glm::ivec2{ mapColumns, mapRows }, spriteScale);
 	glm::vec2 extraMapBorderAllowance = glm::vec2(tileWidth * spriteScale, tileHeight * spriteScale);
 
 	if (gameData.player.position.x < -extraMapBorderAllowance.x ||
