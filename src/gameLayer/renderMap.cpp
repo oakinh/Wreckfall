@@ -56,6 +56,9 @@ Map loadMap(const std::string& filename) {
 			int tileID = tile["tile_id"];
 			bool passable = tile["passable"];
 			std::string type = tile["type"];
+			if (type == "bridge") { // Custom line to change passability of bridges for collision checks
+				passable = false;
+			}
 			
 			std::vector<float> uv = tile.contains("uv")
 				? tile["uv"].get<std::vector<float>>()

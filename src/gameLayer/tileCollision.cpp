@@ -76,13 +76,24 @@ bool isCollidingWithTile(Map map, glm::vec2& position, float radius, glm::vec2 t
 		maxTileY = glm::clamp(maxTileY, 0, mapSize.y - 1);
 
 		bool anyCollision = false;
+		
+		glm::vec2 currentTilePos = position / (tileSize * spriteScale);
+		Tile currentTile = map[currentTilePos.y][currentTilePos.x];
 
 		for (int row = minTileY; row <= maxTileY; ++row) {
 			for (int column = minTileX; column <= maxTileX; ++column) {
 				Tile& tile = map[row][column];
 
-				if (tile.passable) {
-					continue;
+				if ((currentTile.type == "bridge" || currentTile.type == "bridgeEnd") &&
+					tile.type == "bridge") {
+					continue; // Don't check collision
+				}
+
+				if (tile.passable && currentTile.type != "bridge") {
+					continue; // Don't check collision
+				}
+				else if (tile.type == "bridgeEnd") {
+					continue; // Don't check collision
 				}
 
 				glm::vec2 tileCenter = glm::vec2{
@@ -90,6 +101,7 @@ bool isCollidingWithTile(Map map, glm::vec2& position, float radius, glm::vec2 t
 					row * scaledTileHeight + (scaledTileHeight * 0.5f)
 				};
 				glm::vec2 tileHalfSize = tileSize * spriteScale * 0.5f;
+
 				if (isCircleCollidingWithTile(position, scaledRadius, tileCenter, tileHalfSize)) {
 					std::cout << "isColliding found to be true" << std::endl;
 					resolveTileCollision(tileCenter, position, scaledRadius, glm::vec2{ scaledTileWidth, scaledTileHeight });
