@@ -2,6 +2,9 @@
 #include <enemy.h>
 #include <glm/glm.hpp>
 #include <iostream>
+#include <queue>
+#include <unordered_map>
+#include <algorithm>
 
 Animation snatcherAnimation = {
 	glm::vec2{ 16, 16 },
