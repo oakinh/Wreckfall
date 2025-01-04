@@ -287,7 +287,7 @@ bool gameLogic(float deltaTime)
 
 	// Render snatcher
 	if (gameData.snatcher.isAlive) {
-		int xCount = 9;		// Number of columns in the sprite sheet
+		int xCount = snatcherAnimation.totalFrames;		// Number of columns in the sprite sheet
 		int yCount = 1;		// Number of rows
 		int x = snatcherAnimation.currentFrame % xCount;
 		int y = snatcherAnimation.currentFrame / xCount;
@@ -297,10 +297,8 @@ bool gameLogic(float deltaTime)
 		
 		renderer.renderRectangle(
 			gl2d::Rect{
-/*				snatcherTopLeft.x,
-				snatcherTopLeft.y,*/
-				gameData.snatcher.position.x,
-				gameData.snatcher.position.y,
+				snatcherTopLeft.x,
+				snatcherTopLeft.y,
 				snatcherAnimation.frameSize.x * spriteScale,
 				snatcherAnimation.frameSize.y * spriteScale
 			},

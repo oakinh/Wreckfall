@@ -6,7 +6,7 @@
 Animation snatcherAnimation = {
 	glm::vec2{ 16, 16 },
 	6,
-	0.25f,
+	0.1f,
 };
 
 Animation snatcherDeathAnimation = {
