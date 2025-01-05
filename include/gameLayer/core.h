@@ -2,6 +2,10 @@
 #include <glm/vec2.hpp>
 #include <gl2d/gl2d.h>
 
+extern int tileWidth;
+extern int tileHeight;
+extern float spriteScale;
+
 struct Animation {
 	glm::vec2 frameSize;	// Size of each frame in the sprite sheet
 	int totalFrames;		// Total number of frames in the animation

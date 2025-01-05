@@ -53,6 +53,7 @@ std::vector<MovementDirection> reconstructPath(Node* target, const glm::ivec2& s
 	Node* current = target;
 
 	while (current->parent != nullptr) {
+		std::cout << "Current->parent != nullptr" << std::endl;
 		glm::ivec2 diff = current->position - current->parent->position;
 
 		for (int i = 0; i < 8; ++i) {
@@ -82,7 +83,11 @@ std::vector<MovementDirection> aStar(
 	auto getNode = [&](const glm::ivec2& pos) -> Node* {
 		int key = pos.y * static_cast<int>(map[0].size()) + pos.x;
 		if (allNodes.find(key) == allNodes.end()) {
-			allNodes[key] = new Node(pos.x, pos.y);
+			Node* newNode = new Node(pos.x, pos.y);
+			newNode->g = std::numeric_limits<float>::infinity();
+			newNode->h = 0.0f;
+			newNode->f = std::numeric_limits<float>::infinity();
+			allNodes[key] = newNode;
 		}
 		return allNodes[key];
 		};
@@ -117,7 +122,8 @@ std::vector<MovementDirection> aStar(
 
 				float tentativeG = current->g + movementCost;
 
-				if (tentativeG < neighbor->g || neighbor->g == 0) {
+				//if (tentativeG < neighbor->g || neighbor->g == 0) {
+				if (tentativeG < neighbor->g) {
 					neighbor->g = tentativeG;
 					neighbor->h = heuristic(neighborPos, target);
 					neighbor->f = neighbor->g + neighbor->h;

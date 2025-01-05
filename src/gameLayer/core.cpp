@@ -8,6 +8,11 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+int tileWidth = 32;
+int tileHeight = 32;
+float spriteScale = 4.0f;
+
+
 glm::vec2 getTopLeft(glm::vec2 centerPos, float width, float height, float spriteScale) {
 	float scaledWidth = width * spriteScale;
 	float scaledHeight = height * spriteScale;

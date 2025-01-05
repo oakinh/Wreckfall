@@ -32,9 +32,6 @@ gl2d::Texture tileset;
 gl2d::Texture animatedTiles;
 
 Map map;
-int tileWidth = 32;
-int tileHeight = 32;
-float spriteScale = 4.0f;
 float zoomLevel = 1.0f;
 int mapColumns = 10;
 int mapRows = 10;
