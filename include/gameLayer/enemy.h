@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <core.h>
+#include <tile.h>
 
 struct Enemy {
 	glm::vec2 position;		// Center of sprite
@@ -15,4 +16,4 @@ struct Enemy {
 extern Animation snatcherAnimation;
 extern Animation snatcherDeathAnimation;
 
-void moveEnemy(Enemy& enemy, float deltaTime, const glm::vec2& targetPos);
+void moveEnemy(Enemy& enemy, float deltaTime, const glm::vec2& targetPos, const Map& map);

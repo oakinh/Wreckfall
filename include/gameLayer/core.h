@@ -33,6 +33,17 @@ const glm::vec2 directionVectors[8] = {
     glm::vec2(-0.7071f, -0.7071f)    // NORTHWEST
 };
 
+const glm::ivec2 directionInts[8] = {
+	{0, -1},   // NORTH
+	{1, -1},   // NE
+	{1, 0},    // EAST
+	{1, 1},    // SE
+	{0, 1},    // SOUTH
+	{-1, 1},   // SW
+	{-1, 0},   // WEST
+	{-1, -1},  // NW
+};
+
 const int directionRotations[8] = {
     90,   // NORTH
     45,   // NORTHEAST
@@ -48,3 +59,4 @@ glm::vec2 getTopLeft(glm::vec2 centerPos, float width, float height, float sprit
 glm::vec2 getMouseWorldPosition(const glm::ivec2& mouseScreenPos, const gl2d::Camera& camera, float windowWidth, float windowHeight);
 int calculateRotation(const glm::vec2& characterPosition, const glm::vec2& mouseWorldPos);
 void updateAnimation(Animation& animation, float deltaTime);
+glm::ivec2 worldToGrid(const glm::vec2& worldPos, int tileWidth, int tileHeight, float spriteScale);

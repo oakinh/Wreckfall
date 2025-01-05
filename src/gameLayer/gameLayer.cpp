@@ -32,10 +32,10 @@ gl2d::Texture tileset;
 gl2d::Texture animatedTiles;
 
 Map map;
-float zoomLevel = 1.0f;
-float spriteScale = 4.0f;
 int tileWidth = 32;
 int tileHeight = 32;
+float spriteScale = 4.0f;
+float zoomLevel = 1.0f;
 int mapColumns = 10;
 int mapRows = 10;
 float mapWidth = (tileWidth * mapColumns * spriteScale);
@@ -90,7 +90,7 @@ bool initGame()
 
 bool gameLogic(float deltaTime)
 {
-	std::cout << "Snatcher position: (" << gameData.snatcher.position.x << ", " << gameData.snatcher.position.y << ")" << std::endl;
+	//std::cout << "Snatcher position: (" << gameData.snatcher.position.x << ", " << gameData.snatcher.position.y << ")" << std::endl;
 
 #pragma region init stuff
 	static int prevWindowWidth = 0;
@@ -108,6 +108,7 @@ bool gameLogic(float deltaTime)
 	// renderer.clearScreen({ 1.0f, 1.0f, 1.0f, 1.0f }); // To make the background white
 	glm::vec2 viewportSizeInWorld = glm::vec2(w, h) / zoomLevel;
 	gl2d::Camera camera;
+	//gameData.snatcher.position = { 200, 200 };
 
 	camera.position.x = mapCenterX - (w / 2);
 	camera.position.y = mapCenterY - (h / 2);
@@ -310,8 +311,8 @@ bool gameLogic(float deltaTime)
 		);
 		 updateAnimation(snatcherAnimation, deltaTime);
 		
-		moveEnemy(gameData.snatcher, deltaTime, gameData.player.position);
-		std::cout << "Snatcher position: (" << gameData.snatcher.position.x << ", " << gameData.snatcher.position.y << ")" << std::endl;
+		moveEnemy(gameData.snatcher, deltaTime, gameData.player.position, map);
+		//std::cout << "Snatcher position: (" << gameData.snatcher.position.x << ", " << gameData.snatcher.position.y << ")" << std::endl;
 	}
 	else {
 		std::cout << "Snatcher detected as NOT alive" << std::endl;

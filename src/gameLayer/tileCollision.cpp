@@ -103,7 +103,7 @@ bool isCollidingWithTile(Map map, glm::vec2& position, float radius, glm::vec2 t
 				glm::vec2 tileHalfSize = tileSize * spriteScale * 0.5f;
 
 				if (isCircleCollidingWithTile(position, scaledRadius, tileCenter, tileHalfSize)) {
-					std::cout << "isColliding found to be true" << std::endl;
+					//std::cout << "isColliding found to be true" << std::endl;
 					resolveTileCollision(tileCenter, position, scaledRadius, glm::vec2{ scaledTileWidth, scaledTileHeight });
 					collisionDetected = true;
 					anyCollision = true;

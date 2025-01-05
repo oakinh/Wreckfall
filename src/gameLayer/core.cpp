@@ -2,29 +2,11 @@
 #include <gl2d/gl2d.h>
 #include <core.h>
 #include <tile.h>
+#include <cmath>
+#include <iostream>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-
-struct Node {
-	glm::ivec2 position;    // Grid position
-	float g = 0;            // Cost from start to current node
-	float h = 0;            // Heuristic cost to target
-	float f = 0;            // Total cost (f = g + h)
-	Node* parent = nullptr; // Parent node for path reconstruction
-
-	Node(int x, int y) : position(x, y) {}
-
-	bool operator==(const Node& other) const {
-		return position == other.position;
-	}
-};
-
-struct CompareNode {
-	bool operator()(Node* a, Node* b) {
-		return a->f > b->f;
-	}
-};
 
 glm::vec2 getTopLeft(glm::vec2 centerPos, float width, float height, float spriteScale) {
 	float scaledWidth = width * spriteScale;
@@ -53,41 +35,10 @@ void updateAnimation(Animation& animation, float deltaTime) {
 	}
 }
 
-// A* heuristic: Diagonal distance
-float heuristic(glm::ivec2 start, glm::ivec2 target) {
-	int dx = std::abs(start.x - target.x);
-	int dy = std::abs(start.y - target.y);
-	return static_cast<float>(std::max(dx, dy) + (std::sqrt(2.0f) - 1) * std::min(dx, dy));
+glm::ivec2 worldToGrid(const glm::vec2& worldPos, int tileWidth, int tileHeight, float spriteScale) {
+	return glm::ivec2(
+		static_cast<int>(worldPos.x / (tileWidth * spriteScale)),
+		static_cast<int>(worldPos.y / (tileHeight * spriteScale))
+	);
 }
-
-// Check if a tile is valid and passable
-bool isValidTile(const glm::ivec2& pos, const std::vector<std::vector<Tile>>& map) {
-	return pos.x >= 0 && pos.y >= 0 &&
-		pos.x < static_cast<int>(map.size()) &&
-		pos.y < static_cast<int>(map[0].size()) &&
-		map[pos.x][pos.y].passable;
-}
-
-std::vector<MovementDirection> reconstructPath(Node* target, const glm::ivec2& start) {
-	std::vector<MovementDirection> path;
-	Node* current = target;
-
-	while (current->parent != nullptr) {
-		glm::ivec2 diff = current->position - current->parent->position;
-
-		for (int i = 0; i < 8; ++i) {
-			if (glm::vec2(diff) == directionVectors[i]) {
-				path.push_back(static_cast<MovementDirection>(i));
-				break;
-			}
-		}
-
-		current = current->parent;
-	}
-
-	std::reverse(path.begin(), path.end());
-	return path;
-}
-
-
 

@@ -5,6 +5,8 @@
 #include <queue>
 #include <unordered_map>
 #include <algorithm>
+#include <tile.h>
+#include <movement.h>
 
 Animation snatcherAnimation = {
 	glm::vec2{ 16, 16 },
@@ -56,23 +58,42 @@ MovementDirection getDirectionTowards(const glm::vec2& enemyPos, const glm::vec2
 	return dir;
 }
 
-void moveEnemy(Enemy& enemy, float deltaTime, const glm::vec2& targetPos) {
-	enemy.currentDirection = getDirectionTowards(enemy.position, targetPos);
+void moveEnemy(Enemy& enemy, float deltaTime, const glm::vec2& targetPos, const Map& map) {
+	glm::ivec2 start = worldToGrid(enemy.position, 32, 32, 4.0f);
+	glm::ivec2 target = worldToGrid(targetPos, 32, 32, 4.0f);
 	
-	if (enemy.currentDirection == NONE) {
-		// No movement
-		return;
+	std::vector<MovementDirection> path = aStar(map, start, target);
+
+	if (!path.empty()) {
+		std::cout << "Path is not empty" << std::endl;
+		MovementDirection nextMove = path.front();
+		enemy.currentDirection = nextMove;
+
+		glm::vec2 dir = directionVectors[enemy.currentDirection];
+		enemy.position += dir * enemy.movementSpeed * deltaTime;
+
+		//std::cout << "Snatcher position post-update: (" << enemy.position.x << ", " << enemy.position.y << ")" << std::endl;
+		enemy.rotation = directionRotations[enemy.currentDirection];
 	}
-
-	glm::vec2 dir = directionVectors[enemy.currentDirection];
-	//std::cout << "Snatcher position pre-update: (" << enemy.position.x << ", " << enemy.position.y << ")" << std::endl;
-	//std::cout << "Dir is: " << dir.x << ", " << dir.y << std::endl;
-	std::cout << "Movement speed is: " << enemy.movementSpeed << std::endl;
-	//std::cout << "Delta Time is: " << deltaTime << std::endl;
-	enemy.position += dir * enemy.movementSpeed * deltaTime;
-
-	std::cout << "Snatcher position post-update: (" << enemy.position.x << ", " << enemy.position.y << ")" << std::endl;
-
-
-	enemy.rotation = directionRotations[enemy.currentDirection];
 }
+
+//void moveEnemy(Enemy& enemy, float deltaTime, const glm::vec2& targetPos) {
+//	enemy.currentDirection = getDirectionTowards(enemy.position, targetPos);
+//	
+//	if (enemy.currentDirection == NONE) {
+//		// No movement
+//		return;
+//	}
+//
+//	glm::vec2 dir = directionVectors[enemy.currentDirection];
+//	//std::cout << "Snatcher position pre-update: (" << enemy.position.x << ", " << enemy.position.y << ")" << std::endl;
+//	//std::cout << "Dir is: " << dir.x << ", " << dir.y << std::endl;
+//	std::cout << "Movement speed is: " << enemy.movementSpeed << std::endl;
+//	//std::cout << "Delta Time is: " << deltaTime << std::endl;
+//	enemy.position += dir * enemy.movementSpeed * deltaTime;
+//
+//	std::cout << "Snatcher position post-update: (" << enemy.position.x << ", " << enemy.position.y << ")" << std::endl;
+//
+//
+//	enemy.rotation = directionRotations[enemy.currentDirection];
+//}
