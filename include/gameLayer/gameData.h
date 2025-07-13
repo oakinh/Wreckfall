@@ -13,7 +13,7 @@ struct GameData
 	Gun gun;
 	static const int maxBullets = 50;
 	std::array<Bullet, maxBullets> bullets;
-	static const int maxFallenShips = 10;
+	static const int maxFallenShips = 4;
 	std::array<FallenShip, maxFallenShips> fallenShips;
 };
 

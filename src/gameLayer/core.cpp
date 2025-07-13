@@ -33,6 +33,11 @@ glm::vec2 getTopLeft(glm::vec2 centerPos, float width, float height, float sprit
 	return { centerPos.x - scaledWidth / 2, centerPos.y - scaledHeight / 2 };
 }
 
+glm::vec2 getTopLeft(glm::vec2 centerPos, float radius, float spriteScale) {
+	float scaledRadius = radius * spriteScale;
+	return { centerPos.x - scaledRadius, centerPos.y - scaledRadius };
+}
+
 glm::vec2 getMouseWorldPosition(const glm::ivec2& mouseScreenPos, const gl2d::Camera& camera, float windowWidth, float windowHeight) {
 	return gl2d::internal::convertPoint(camera, glm::vec2(mouseScreenPos), windowWidth, windowHeight);
 }
@@ -87,6 +92,11 @@ std::vector<MovementDirection> reconstructPath(Node* target, const glm::ivec2& s
 
 	std::reverse(path.begin(), path.end());
 	return path;
+}
+
+template <typename T>
+glm::vec2 getTopLeft(T ) {
+
 }
 
 
