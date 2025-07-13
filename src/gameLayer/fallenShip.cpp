@@ -18,9 +18,11 @@ void orchestrateShips() {
 
 void renderShips(gl2d::Renderer2D& renderer) {
 	for (FallenShip& ship : gameData.fallenShips) {
+		const glm::vec2 shipTopLeft = getTopLeft(ship.position, ship.radius, ship.spriteScale;
 		renderer.renderRectangle(
 			gl2d::Rect{
-				ship.position.x
+				shipTopLeft.x,
+				shipTopLeft.y,
 			},
 		);
 	}
