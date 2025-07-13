@@ -346,6 +346,8 @@ bool gameLogic(float deltaTime)
 		gameData.player.position = glm::vec2(200.0f, 200.0f);
 	}
 
+	// Render falling ships
+
 	renderer.flush();
 
 
