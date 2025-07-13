@@ -12,6 +12,11 @@ struct FallenShip {
 	float spriteScale{ 3.0f };
 };
 
+//struct FallenShipFallingAnimation {
+//	xCount;
+//	yCount;
+//};
+
 FallenShip* dropShip(glm::vec2 position);
 
 FallenShip& destroyShip(FallenShip& ship);
