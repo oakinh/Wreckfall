@@ -3,6 +3,27 @@
 
 cmake_minimum_required(VERSION 3.16)
 
+# Force modern Windows SDK + VS2022 toolset
+if (WIN32)
+  # Use any installed Windows 10+ SDK (avoids 8.1)
+  set(CMAKE_SYSTEM_VERSION 10.0)
+  # If you want to pin exactly, uncomment the next line and set your SDK:
+  # set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION 10.0.26100.0)
+endif()
+
+if (MSVC)
+  # VS2022 toolset
+  set(CMAKE_GENERATOR_TOOLSET v143 CACHE STRING "" FORCE)
+endif()
+
+# IPO/LTCG: off by default; on only for Release
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+
+# Single, correct static runtime setting
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+
 set(CMAKE_CXX_STANDARD 17)
 
 #! ! ! ! ! ! !
@@ -14,16 +35,17 @@ option(PRODUCTION_BUILD "Make this a production build" OFF)
 #DELETE THE OUT FOLDER AFTER CHANGING THIS BECAUSE VISUAL STUDIO DOESN'T SEEM TO RECOGNIZE THIS CHANGE AND REBUILD!
 
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
+#set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) #link time optimization
+
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF) #link time optimization
 
 if(MSVC) 
 add_compile_options(/arch:AVX2) #make sure SIMD optimizations take place
 endif()
 
-project(mygame)
+project(Wreckfall)
 
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -46,6 +68,8 @@ add_subdirectory(thirdparty/safeSave)			#saving data, designed for gamedev. It a
 add_subdirectory(thirdparty/profilerLib)		#profiling, just a simpe library for measuring elapsed time
 add_subdirectory(thirdparty/gl2d)				#2D rendering library
 add_subdirectory(thirdparty/glui)				#ui library, usefull for making game menus
+
+set_property(TARGET safeSave PROPERTY INTERPROCEDURAL_OPTIMIZATION OFF)
 
 
 # MY_SOURCES is defined to be a list of all the source files for my game 

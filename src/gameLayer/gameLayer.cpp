@@ -31,6 +31,10 @@ gl2d::Texture gunFireSprite;
 gl2d::Texture tileset;
 gl2d::Texture animatedTiles;
 
+// Temp
+gl2d::Texture shipwreckSprite1;
+gl2d::Texture shipwreckSprite2;
+
 Map map;
 float zoomLevel = 1.0f;
 float spriteScale = 4.0f;
@@ -62,6 +66,9 @@ bool initGame()
 	gunFireSprite.loadFromFile(RESOURCES_PATH "gunfire.png", true);
 	tileset.loadFromFile(RESOURCES_PATH "wreckfall.tilemap.png", true);
 	animatedTiles.loadFromFile(RESOURCES_PATH "wreckfall.water.animation.png", true);
+
+	shipwreckSprite1.loadFromFile(RESOURCES_PATH "shipwreck-1-1.png", true);
+	shipwreckSprite2.loadFromFile(RESOURCES_PATH "shipwreck-3-1.png", true);
 
 	map = loadMap(RESOURCES_PATH "processed_map_inverted.json");
 	writeMapToFile(map, RESOURCES_PATH "loaded_map.json");
@@ -345,6 +352,18 @@ bool gameLogic(float deltaTime)
 		std::cout << "Player exited map boundaries. Teleporting to (200, 200)." << std::endl;
 		gameData.player.position = glm::vec2(200.0f, 200.0f);
 	}
+
+	// Temp shipwrecks
+	renderer.renderRectangle(
+		gl2d::Rect{
+			gameData.player.position,
+			64.0f * spriteScale,
+			64.0f * spriteScale,
+		},
+		shipwreckSprite1,
+		gl2d::Color4f{ 1, 1, 1, 1 },
+		glm::vec2{0, 0}
+	);
 
 	renderer.flush();
 

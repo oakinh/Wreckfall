@@ -1,0 +1,36 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 16
+  },
+  "configurePresets": [
+    {
+      "name": "vs2022-x64",
+      "displayName": "VS2022 x64",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "toolset": "v143",
+      "binaryDir": "${sourceDir}/out/vsbuild",
+      "cacheVariables": {
+        "CMAKE_SYSTEM_VERSION": "10.0",
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "OFF",
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE": "ON",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>",
+        "PRODUCTION_BUILD": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "vs2022-x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "release",
+      "configurePreset": "vs2022-x64",
+      "configuration": "Release"
+    }
+  ]
+}
