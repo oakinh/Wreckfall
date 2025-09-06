@@ -8,9 +8,12 @@ void takeDamage(T& entity, int damage) {
 }
 
 template <typename T>
-int calculateBulletDamage(T& entity, Weapon weapon, glm::vec2 mouseWorldPos) {
+int calculateBulletDamage(T& target, Weapon weapon, glm::vec2 mouseWorldPos) {
 	constexpr minimumDamage{ 5 };
-	const int distance { static_cast<int>(std::round(glm::distance(entity.position, mouseWorldPos))) };
+	const int distance { static_cast<int>(std::round(glm::distance(target.position, mouseWorldPos))) };
 	const int damage { damageMap[weapon] - distance }
-	return damage > 0 ? damage : minimumDamage; // We don't want to inadvertently give health to the hit entity
+	return (damage > 0) ? damage : minimumDamage; // We don't want to inadvertently give health to the target entity
 }
+
+template <typename T>
+T& checkAndHandleBulletCollisions(const GameData& gameData, )
